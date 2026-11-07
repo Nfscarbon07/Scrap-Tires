@@ -102,7 +102,8 @@ input{font:inherit;color:inherit}
 .take .ic{width:34px;height:34px}
 .sess-head{display:flex;align-items:center;gap:8px}
 .sess-head h2{margin:0;font-size:18px;white-space:nowrap}
-.sess-head .count,.sess-head .pill{margin-right:auto}
+.sess-head .add-btn{margin-left:auto}
+.sess-upd{color:var(--or-t);font-size:12.5px;font-weight:800;white-space:nowrap}
 .sess-head .ico .ic{width:28px;height:28px}
 .count{min-width:34px;height:28px;padding:0 10px;border-radius:14px;background:#9e9e9e;color:#1b1b1b;font-weight:800;display:grid;place-items:center;font-size:15px}
 .count.has{background:var(--or);color:#fff}
@@ -230,9 +231,10 @@ input{font:inherit;color:inherit}
 .hthumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin:12px 0 14px}
 .hthumbs button{aspect-ratio:1;border-radius:10px;overflow:hidden;background:#222;display:block}
 .hthumbs img{width:100%;height:100%;object-fit:cover;display:block}
-.hbtns{display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:8px}
-.hbtns .btn{height:46px;padding:0 6px;font-size:15px;gap:6px;border-radius:12px}
-.hbtns .btn .ic{width:20px;height:20px}
+.hbtns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.hbtns .btn{height:58px;padding:4px 2px;font-size:13.5px;gap:3px;border-radius:12px;flex-direction:column}
+.hbtns .btn .ic{width:21px;height:21px}
+.save-all{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:0 0 16px}
 .muted{color:var(--tx2)}
 .center{text-align:center}
 .set h3{margin:26px 0 6px;font-size:18px}
@@ -429,7 +431,7 @@ html.locked .toast{bottom:calc(var(--sb) + 120px)}
   <div class="card">
     <div class="sess-head">
       <span class="ico or" data-ic="photos"></span><h2>Session Photos</h2>
-      <span class="count" id="home-count">0</span>
+      <span class="count" id="home-count">0</span><span class="sess-upd" hidden>Updating…</span>
       <button class="btn btn-ghost add-btn" data-action="add-photos" aria-label="Add Photos"><span class="ico" data-ic="imgplus"></span><span class="lbl">Add<span class="lbl2"> Photos</span></span></button>
     </div>
     <div id="home-strip"></div>
@@ -495,7 +497,7 @@ html.locked .toast{bottom:calc(var(--sb) + 120px)}
         </div>
       </div>
       <div class="chk" id="cam-chk"></div>
-      <div class="sess-head sm"><span class="ico or" data-ic="photos"></span><h2>Session Photos</h2><span class="pill" id="cam-pill">0 Captured</span></div>
+      <div class="sess-head sm"><span class="ico or" data-ic="photos"></span><h2>Session Photos</h2><span class="pill" id="cam-pill">0 Captured</span><span class="sess-upd" hidden>Updating…</span></div>
       <div id="cam-strip"></div>
     </div>
   </div>
@@ -509,6 +511,7 @@ html.locked .toast{bottom:calc(var(--sb) + 120px)}
     <div class="t"><h1>7-Day Inspection History</h1><p>Photos automatically purge after 7 days</p></div>
     <button class="icon-btn del-all" data-action="clear-all" aria-label="Delete all photos"><span class="ico" data-ic="trash"></span></button>
   </div>
+  <button class="btn btn-ghost save-all" data-action="save-all" id="save-all" hidden><span class="ico" data-ic="download"></span>Save all photos to your phone</button>
   <div id="hist-list"></div>
 </section>
 
@@ -853,14 +856,11 @@ function rawCanvas(src, sx, sy, sw, sh) {
   g.drawImage(src, sx, sy, sw, sh, 0, 0, W, H);
   return c;
 }
-async function compose(src, sx, sy, sw, sh, m) {
-  const raw = rawCanvas(src, sx, sy, sw, sh);
-  const out = await finishPhoto(raw, m);
-  out.raw = raw;
-  return out;
-}
+// Everything that appears in the label; when any of it changes the photo is redrawn.
+const labelKey = (m) => JSON.stringify([m.unit, m.position, m.hours || '', m.status || '', m.banner, !!m.flip]);
+// Draws photo + label. `raw` is the unlabelled photo (canvas or image).
 async function finishPhoto(raw, m) {
-  const W = raw.width, H = raw.height;
+  const W = raw.naturalWidth || raw.width, H = raw.naturalHeight || raw.height;
   const s = Math.sqrt(W * H), bh = Math.round(s * 0.14);
   const c = document.createElement('canvas');
   c.width = W; c.height = H + bh;
@@ -878,9 +878,65 @@ async function finishPhoto(raw, m) {
   tg.imageSmoothingQuality = 'high';
   tg.drawImage(c, 0, 0, t.width, t.height);
   const thumbBlob = await canvasBlob(t, 0.78);
-  const out = { full: await blobBuf(fullBlob), thumb: await blobBuf(thumbBlob), w: W, h: H + bh };
+  const out = { fullBlob, thumb: await blobBuf(thumbBlob), w: W, h: H + bh };
   c.width = c.height = 0; t.width = t.height = 0;
   return out;
+}
+function decodeImage(buf) {
+  return new Promise((res, rej) => {
+    const u = URL.createObjectURL(new Blob([buf], { type: 'image/jpeg' }));
+    const im = new Image();
+    im.onload = () => res({ im, u });
+    im.onerror = () => { URL.revokeObjectURL(u); rej(new Error('Could not read photo')); };
+    im.src = u;
+  });
+}
+// One redraw at a time, so phones don't run out of memory.
+let drawChain = Promise.resolve();
+function queued(fn) { const p = drawChain.then(fn, fn); drawChain = p.catch(() => {}); return p; }
+// Redraws the labelled photo + thumbnail from the unlabelled original.
+function renderPhoto(id) {
+  return queued(async () => {
+    const m = metaCache.get(id);
+    if (!m) return null;
+    const key = labelKey(m);
+    const c = blobCache.get(id);
+    if (c && c.key === key) return c.blob;
+    let src = rawCache.get(id), dec = null;
+    if (!src) {
+      const f = await store.getFull(id);
+      if (!f || !f.raw) return null;
+      dec = await decodeImage(f.raw);
+      src = dec.im;
+    }
+    try {
+      const r = await finishPhoto(src, m);
+      m.w = r.w; m.h = r.h; m.thumb = r.thumb; m.key = key;
+      const u = thumbUrls.get(id);
+      if (u) { URL.revokeObjectURL(u); thumbUrls.delete(id); }
+      try { await store.putMeta(m); } catch (e) {}
+      setCached(id, r.fullBlob, key);
+      return r.fullBlob;
+    } finally { if (dec) URL.revokeObjectURL(dec.u); }
+  });
+}
+// The labelled photo, up to date with the photo's details.
+async function getStampedBlob(id) {
+  const m = metaCache.get(id);
+  if (!m) return null;
+  const c = blobCache.get(id);
+  if (c && (c.legacy || c.key === labelKey(m))) return c.blob;
+  if (m.hasRaw) { const b = await renderPhoto(id); if (b) return b; }
+  // photos taken before labels could be updated: their label is fixed
+  const f = await store.getFull(id);
+  if (!f || !f.data) return null;
+  const blob = new Blob([f.data], { type: 'image/jpeg' });
+  setCached(id, blob, null, true);
+  return blob;
+}
+function isFresh(id) {
+  const m = metaCache.get(id), c = blobCache.get(id);
+  return !!(m && c && (c.legacy || c.key === labelKey(m)));
 }
 /* checklist: each photo is one of the 5 required photos (STEPS); sv:2 marks the current list */
 const STEP_VER = 2;
@@ -916,15 +972,10 @@ async function setStep(id, k) {
 const rawCache = new Map();
 function dropRaw(id) { const c = rawCache.get(id); if (c) { c.width = c.height = 0; rawCache.delete(id); } }
 async function flipPhoto(id) {
-  const raw = rawCache.get(id), m = metaCache.get(id);
-  if (!raw || !m) return;
+  const m = metaCache.get(id);
+  if (!m || !m.hasRaw) return;
   m.flip = !m.flip;
-  const r = await finishPhoto(raw, m);
-  m.w = r.w; m.h = r.h; m.thumb = r.thumb;
-  await store.add(m, { id, data: r.full });
-  const u = thumbUrls.get(id);
-  if (u) { URL.revokeObjectURL(u); thumbUrls.delete(id); }
-  cacheBlob(id, r.full);
+  await renderPhoto(id);
   renderSession();
 }
 // Popup with the 5 photo types: tap one, then Next. Items already taken this session
@@ -1002,13 +1053,15 @@ async function savePhoto(src, sx, sy, sw, sh) {
     id: uid(), unit: unitClean(), position: posClean(), ts: Date.now(), banner: S.banner, step: null, sv: STEP_VER,
     hours: String(S.hours || '').trim(), status: S.reason || ''
   };
-  const r = await compose(src, sx, sy, sw, sh, meta);
-  meta.w = r.w; meta.h = r.h; meta.thumb = r.thumb;
-  rawCache.set(meta.id, r.raw);
-  await store.add(meta, { id: meta.id, data: r.full });
+  const raw = rawCanvas(src, sx, sy, sw, sh);   // grabs the frame right away
+  const rawBlob = await canvasBlob(raw, 0.92);
+  const r = await finishPhoto(raw, meta);
+  meta.w = r.w; meta.h = r.h; meta.thumb = r.thumb; meta.key = labelKey(meta); meta.hasRaw = true;
+  rawCache.set(meta.id, raw);
+  await store.add(meta, { id: meta.id, raw: await blobBuf(rawBlob) });
   metaCache.set(meta.id, meta);
   S.session.push(meta.id);
-  cacheBlob(meta.id, r.full);
+  setCached(meta.id, r.fullBlob, meta.key);
   addRecentUnit(meta.unit);
   save();
   renderSession(true);
@@ -1152,10 +1205,10 @@ async function addFiles(files) {
 // Full-size images for the current session are kept ready in memory, so the
 // Send button can open the share menu straight away (phones only allow that
 // right after a tap, with no waiting in between).
-const blobCache = new Map();
-function cacheBlob(id, buf) {
+const blobCache = new Map();   // id -> { blob, key, legacy }
+function setCached(id, blob, key, legacy) {
   blobCache.delete(id);
-  blobCache.set(id, new Blob([buf], { type: 'image/jpeg' }));
+  blobCache.set(id, { blob, key, legacy: !!legacy });
   trimBlobCache();
 }
 function trimBlobCache() {
@@ -1164,9 +1217,45 @@ function trimBlobCache() {
   others.slice(0, Math.max(0, others.length - 6)).forEach((k) => blobCache.delete(k));
 }
 async function preloadSession() {
-  await Promise.all(S.session.filter((id) => !blobCache.has(id)).map(async (id) => {
-    try { const f = await store.getFull(id); if (f) cacheBlob(id, f.data); } catch (e) {}
-  }));
+  for (const id of S.session.slice()) {
+    try { await getStampedBlob(id); } catch (e) {}
+  }
+  renderSession();
+}
+
+/* labels follow the details: when the unit, position, hours, status or label style
+   change, the photos in the current session are relabelled */
+let syncT = null, updating = 0;
+function fieldsChanged() { clearTimeout(syncT); syncT = setTimeout(syncSession, 600); }
+function sessionPatch() {
+  const p = { hours: String(S.hours || '').trim(), status: S.reason || '' };
+  const u = unitClean(), ps = posClean();
+  if (u) p.unit = u;          // a box that's empty while you retype doesn't blank the label
+  if (ps) p.position = ps;
+  return p;
+}
+async function patchPhotos(ids, patch) {
+  for (const id of ids) {
+    const m = metaCache.get(id);
+    if (!m) continue;
+    let ch = false;
+    for (const k in patch) if ((m[k] || '') !== (patch[k] || '')) { m[k] = patch[k]; ch = true; }
+    if (ch) { try { await store.putMeta(m); } catch (e) {} }
+  }
+}
+function setUpdating(d) {
+  updating = Math.max(0, updating + d);
+  $$('.sess-upd').forEach((el) => { el.hidden = !updating; });
+}
+async function syncSession() {
+  clearTimeout(syncT); syncT = null;
+  if (!S.session.length) return;
+  await patchPhotos(S.session, sessionPatch());
+  const stale = S.session.filter((id) => { const m = metaCache.get(id); return m && m.hasRaw && !isFresh(id); });
+  if (!stale.length) return;
+  setUpdating(1);
+  try { for (const id of stale) { try { await renderPhoto(id); } catch (e) {} } }
+  finally { setUpdating(-1); renderSession(); }
 }
 // Message text in the same order as the guideline example:
 // T165 - Left Rear Inside - CA59-3214 - 2259 hrs - Shoulder Separation - Scrap
@@ -1219,8 +1308,29 @@ async function finishShare(files, text, fromSession, api) {
   const r = await doShare(files, text);
   if (r === 'sent' || r === 'downloaded') {
     if (api) api.close();
-    if (r === 'sent') { if (fromSession) showNextTire(); else toast('Sent'); }
+    if (r === 'sent') { if (fromSession) resetAfterSend(); else toast('Sent'); }
   }
+}
+// After sending the current tire: clear the main page for the next one and show History.
+function resetAfterSend() {
+  clearTimeout(syncT); syncT = null;
+  S.session = [];
+  S.unit = ''; S.position = ''; S.hours = ''; S.reason = ''; S.serial = ''; S.damage = '';
+  save();
+  trimBlobCache();
+  renderAll();
+  history.replaceState(null, '', '#/');
+  go('history');
+  toast('Sent. The photos are saved here in History.');
+}
+// Labelled photos as files, in the given order (redraws any whose details changed).
+async function buildFiles(ids, metas) {
+  const n = ids.length, files = [];
+  for (let k = 0; k < n; k++) {
+    const b = await getStampedBlob(ids[k]);
+    if (b) files.push(new File([b], fileName(metas[k], k, n), { type: 'image/jpeg', lastModified: metas[k].ts }));
+  }
+  return files;
 }
 // Save: iPhone/iPad can only save to Photos through its share menu ("Save Images"),
 // so it opens that menu with just the photos. Android and computers download them.
@@ -1264,15 +1374,15 @@ function runAction(mode, files, metas, fromSession, api) {
 function actOnIds(ids, mode, fromSession) {
   ids = ids.filter((id) => metaCache.has(id));
   if (!ids.length) { toast('Take a photo first'); return; }
-  // checklist order (1 → 5, extras last), then the order they were taken
+  if (fromSession && syncT) { clearTimeout(syncT); syncT = null; syncSession(); }   // apply pending edits
   // send/save order: Painted Tire first, then 1-4, then any not picked; same type in the order taken
   const RANK = { 5: 0, 1: 1, 2: 2, 3: 3, 4: 4 };
   const rank = (m) => (m.step in RANK ? RANK[m.step] : 99);
   ids.sort((a, b) => { const A = metaCache.get(a), B = metaCache.get(b); return (rank(A) - rank(B)) || (A.ts - B.ts); });
   const metas = ids.map((id) => metaCache.get(id)), n = ids.length;
   if (mode === 'send') { sendDialog(ids, metas, fromSession); return; }
-  if (ids.every((id) => blobCache.has(id))) {
-    const files = ids.map((id, k) => new File([blobCache.get(id)], fileName(metas[k], k, n), { type: 'image/jpeg', lastModified: metas[k].ts }));
+  if (!updating && ids.every(isFresh)) {
+    const files = ids.map((id, k) => new File([blobCache.get(id).blob], fileName(metas[k], k, n), { type: 'image/jpeg', lastModified: metas[k].ts }));
     runAction(mode, files, metas, fromSession, null);
     return;
   }
@@ -1313,7 +1423,10 @@ async function sendDialog(ids, metas, fromSession) {
     <div class="acts"><button class="tbtn" data-close>Cancel</button><button class="btn btn-or" data-go-share disabled>${ic('send')}<span>Getting ready…</span></button></div>
   </div>`);
   const el = api.el;
-  const keep = () => { if (fromSession) { Object.assign(S, det); save(); renderInputs(); renderBannerPreview(); } };
+  const keep = () => {
+    if (fromSession) { clearTimeout(syncT); syncT = null; Object.assign(S, det); save(); renderInputs(); renderBannerPreview(); }
+    scheduleFiles();
+  };
   function refresh() {
     const hrs = String(det.hours || '').trim();
     const typeIt = withText ? 'Add it below, or type it in your message' : 'Type it in your message';
@@ -1343,20 +1456,28 @@ async function sendDialog(ids, metas, fromSession) {
       keep(); refresh();
     });
   }
+  // Hours and status changed here also go on the photos' labels, so the photos are
+  // redrawn (Send waits until they're ready).
   const btn = el.querySelector('[data-go-share]');
-  let files = null;
-  if (ids.every((id) => blobCache.has(id))) {
-    files = ids.map((id, k) => new File([blobCache.get(id)], fileName(metas[k], k, n), { type: 'image/jpeg', lastModified: metas[k].ts }));
-  } else {
+  const lbl = (t) => { btn.querySelector('span').textContent = t; };
+  let files = null, prepT = null, token = 0;
+  async function prepare() {
+    const my = ++token;
+    btn.disabled = true; lbl('Getting ready…');
     try {
-      const fulls = await Promise.all(ids.map((id) => store.getFull(id)));
-      files = fulls.map((f, k) => (f ? new File([f.data], fileName(metas[k], k, n), { type: 'image/jpeg', lastModified: metas[k].ts }) : null)).filter(Boolean);
-    } catch (e) { files = null; }
+      await patchPhotos(ids, { hours: String(det.hours || '').trim(), status: det.reason || '' });
+      const fs = await buildFiles(ids, metas);
+      if (my !== token) return;
+      files = fs;
+      if (!files.length) { lbl("Couldn't load photos"); return; }
+      btn.disabled = false; lbl('Send');
+      el.querySelectorAll('.sthumbs img').forEach((im, k) => { if (metas[k]) im.src = thumbUrl(metas[k]); });
+      renderSession();
+    } catch (e) { if (my === token) lbl("Couldn't load photos"); }
   }
-  if (!files || !files.length) { btn.querySelector('span').textContent = "Couldn't load photos"; return; }
-  btn.disabled = false;
-  btn.querySelector('span').textContent = 'Send';
-  btn.addEventListener('click', () => finishShare(files, detailsText(metas, det), fromSession, api));
+  function scheduleFiles() { clearTimeout(prepT); btn.disabled = true; lbl('Updating photos…'); prepT = setTimeout(prepare, 500); }
+  btn.addEventListener('click', () => { if (files && !btn.disabled) finishShare(files, detailsText(metas, det), fromSession, api); });
+  prepare();
 }
 async function actionDialog(ids, metas, mode, fromSession) {
   const n = ids.length, verb = mode === 'save' ? 'Save' : 'Send';
@@ -1367,36 +1488,11 @@ async function actionDialog(ids, metas, mode, fromSession) {
   </div>`);
   const btn = api.el.querySelector('[data-go-share]');
   let files = null;
-  try {
-    const fulls = await Promise.all(ids.map((id) => store.getFull(id)));
-    files = fulls.map((f, k) => (f ? new File([f.data], fileName(metas[k], k, n), { type: 'image/jpeg', lastModified: metas[k].ts }) : null)).filter(Boolean);
-  } catch (e) { files = null; }
+  try { files = await buildFiles(ids, metas); } catch (e) { files = null; }
   if (!files || !files.length) { btn.querySelector('span').textContent = "Couldn't load photos"; return; }
   btn.disabled = false;
   btn.querySelector('span').textContent = verb;
   btn.addEventListener('click', () => runAction(mode, files, metas, fromSession, api));
-}
-function showNextTire() {
-  const api = overlay(`<div class="dlg"><h3>Sent!</h3><p>These photos stay in History for 7 days.</p>
-    <div class="stack">
-      <button class="btn btn-or wide" data-nt="next">Next tire, same unit</button>
-      <button class="btn btn-ghost wide" data-nt="new">New unit</button>
-      <button class="tbtn wide" data-nt="keep">Keep these photos here</button>
-    </div></div>`);
-  api.el.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-nt]');
-    if (!b) return;
-    api.close();
-    if (b.dataset.nt === 'keep') return;
-    S.session = [];
-    S.position = '';
-    S.hours = ''; S.reason = ''; S.serial = ''; S.damage = '';
-    if (b.dataset.nt === 'new') S.unit = '';
-    save();
-    trimBlobCache();
-    renderAll();
-    if (b.dataset.nt === 'new' && cur === 'camera') back();
-  });
 }
 
 /* ---------------- photo viewer ---------------- */
@@ -1437,10 +1533,9 @@ function openViewer(ids, start) {
     el.querySelector('[data-v=prev]').hidden = i === 0;
     el.querySelector('[data-v=next]').hidden = i >= ids.length - 1;
     try {
-      const f = await store.getFull(id);
-      if (my !== token || !f) return;
-      cacheBlob(id, f.data);
-      const u = URL.createObjectURL(blobCache.get(id) || new Blob([f.data], { type: 'image/jpeg' }));
+      const blob = await getStampedBlob(id);
+      if (my !== token || !blob) return;
+      const u = URL.createObjectURL(blob);
       if (url) URL.revokeObjectURL(url);
       url = u; img.src = u;
     } catch (e) {}
@@ -1561,11 +1656,11 @@ function renderSession(scrollEnd) {
   if (scrollEnd) $$('.strip').forEach((s) => { s.scrollLeft = s.scrollWidth; });
 }
 const STEPS = [
-  { t: 'Overall Tire Condition', d: 'Full photo of the tire showing the damage, from far away', s: 'Full tire, damage from far away', b: 'Far Damage' },
+  { t: 'Overall Tire Condition', d: 'Full photo of the tire showing the damage, from far away', s: 'Damage far away', b: 'Far Damage' },
   { t: 'Damage / Injury', d: 'Photo of the damage area close-up', s: 'Damage close-up', b: 'Close Damage' },
   { t: 'Inside Damage', d: 'Photo of the damage / condition of the inside of the tire', s: 'Inside damage', b: 'Inside' },
-  { t: 'Serial Number & Brand', d: 'Clear photo of the brand number and serial number', s: 'Serial # & brand markings', b: 'Serial/Brand' },
-  { t: 'Painted Tire', d: 'Photo of the tire painted with the brand number and status', s: 'Painted tire', b: 'Painted Tire' }
+  { t: 'Serial Number & Brand', d: 'Clear photo of the brand number and serial number', s: 'Serial # & brand numbers', b: 'Serial/Brand' },
+  { t: 'Painted Tire', d: 'Photo of the tire painted with the brand number and status', s: 'Full tire with painted tread', b: 'Painted Tire' }
 ];
 function renderGuide() {
   $('#guide-steps').innerHTML = STEPS.map((x, i) => `<li><span class="num">${i + 1}</span><span><b>${x.t}</b><span class="d">${x.d}</span></span></li>`).join('');
@@ -1598,6 +1693,8 @@ async function renderHistory() {
   try { all = await store.allMeta(); } catch (e) {}
   all.forEach((m) => metaCache.set(m.id, normStep(m)));
   HG = [];
+  $('#save-all').hidden = !all.length;
+  if (all.length) $('#save-all').lastChild.textContent = `Save all ${all.length} photos to your phone`;
   if (!all.length) { list.innerHTML = `<div class="empty">No photos from the last 7 days.</div>`; return; }
   const units = new Map();
   all.sort((a, b) => b.ts - a.ts).forEach((m) => {
@@ -1616,7 +1713,7 @@ async function renderHistory() {
         return `<div class="hgroup">
           <div class="hg-top">${ic('tirepos', 'sm')}<span class="ps">POSITION: ${esc(G.position || '—')}</span><span class="tm">${esc(fmtStamp(G.latest).replace('  ', ' '))}</span></div>
           <div class="hthumbs">${G.ids.map((id, k) => `<button data-hview="${gi}:${k}" aria-label="View photo ${k + 1}"><img src="${thumbUrl(metaCache.get(id))}" alt="" loading="lazy"></button>`).join('')}</div>
-          <div class="hbtns"><button class="btn btn-ghost" data-hdel="${gi}">${ic('trash')}Delete</button><button class="btn btn-ghost" data-hopen="${gi}">${ic('pencil')}Open</button><button class="btn btn-or" data-hshare="${gi}">${ic('share')}Share</button></div>
+          <div class="hbtns"><button class="btn btn-ghost" data-hdel="${gi}">${ic('trash')}Delete</button><button class="btn btn-ghost" data-hopen="${gi}">${ic('pencil')}Edit</button><button class="btn btn-ghost" data-hsave="${gi}">${ic('download')}Save</button><button class="btn btn-or" data-hshare="${gi}">${ic('share')}Share</button></div>
         </div>`;
       }).join('')}
     </div>`).join('');
@@ -1707,20 +1804,20 @@ function route() {
 /* ---------------- events ---------------- */
 function setPosition(p) {
   S.position = p; save();
-  renderInputs(); renderPositions(); renderBannerPreview();
+  renderInputs(); renderPositions(); renderBannerPreview(); fieldsChanged();
 }
 function bindInputs() {
   const units = ['#home-unit', '#cam-unit'], poss = ['#home-position', '#cam-position'];
   units.forEach((sel) => {
     const el = $(sel);
-    el.addEventListener('input', () => { S.unit = el.value; save(); renderInputs(); renderBannerPreview(); });
+    el.addEventListener('input', () => { S.unit = el.value; save(); renderInputs(); renderBannerPreview(); fieldsChanged(); });
   });
   poss.forEach((sel) => {
     const el = $(sel);
-    el.addEventListener('input', () => { S.position = el.value; save(); renderInputs(); renderPositions(); renderBannerPreview(); });
+    el.addEventListener('input', () => { S.position = el.value; save(); renderInputs(); renderPositions(); renderBannerPreview(); fieldsChanged(); });
   });
   const hrs = $('#home-hours');
-  hrs.addEventListener('input', () => { S.hours = hrs.value; save(); renderBannerPreview(); });
+  hrs.addEventListener('input', () => { S.hours = hrs.value; save(); renderBannerPreview(); fieldsChanged(); });
   [...units, ...poss, '#home-hours'].forEach((sel) => $(sel).addEventListener('keydown', (e) => { if (e.key === 'Enter') e.target.blur(); }));
   $('#file-add').addEventListener('change', (e) => { const f = [...e.target.files]; e.target.value = ''; addFiles(f); });
   $('#file-cam').addEventListener('change', (e) => { const f = [...e.target.files]; e.target.value = ''; addFiles(f); });
@@ -1732,23 +1829,28 @@ document.addEventListener('click', async (e) => {
   if (d.go) return go(d.go);
   if ('back' in d) return back();
   if (d.pos !== undefined) return setPosition(d.pos);
-  if (d.status) { S.reason = S.reason === d.status ? '' : d.status; save(); renderStatus(); renderBannerPreview(); return; }
-  if (d.unit !== undefined) { S.unit = d.unit; save(); renderInputs(); renderBannerPreview(); return; }
+  if (d.status) { S.reason = S.reason === d.status ? '' : d.status; save(); renderStatus(); renderBannerPreview(); fieldsChanged(); return; }
+  if (d.unit !== undefined) { S.unit = d.unit; save(); renderInputs(); renderBannerPreview(); fieldsChanged(); return; }
   if (d.unitDel !== undefined) { S.recentUnits = S.recentUnits.filter((x) => x !== d.unitDel); save(); renderRecents(); return; }
   if (d.sview !== undefined) return openViewer(S.session.slice(), +d.sview);
   if (d.sdel) return deleteSessionPhoto(d.sdel);
-  if (d.banner) { S.banner = d.banner; save(); renderBannerPreview(); return; }
+  if (d.banner) { S.banner = d.banner; save(); renderBannerPreview(); patchPhotos(S.session, { banner: S.banner }).then(fieldsChanged); return; }
   if (d.shape) { S.shape = d.shape; save(); renderSettings(); updateAspect(); return; }
   if (d.set) return settingsAction(d.set);
   if (d.hview) { const [g, k] = d.hview.split(':').map(Number); if (HG[g]) openViewer(HG[g].ids.slice(), k); return; }
   if (d.hshare) { const G = HG[+d.hshare]; if (G) sendIds(G.ids.slice(), false); return; }
+  if (d.hsave) { const G = HG[+d.hsave]; if (G) actOnIds(G.ids.slice(), 'save', false); return; }
   if (d.hopen) {
+    // Edit: these photos become the current photos on the main page; changing the
+    // unit, position, hours or status there relabels them.
     const G = HG[+d.hopen]; if (!G) return;
+    clearTimeout(syncT); syncT = null;
+    const m0 = metaCache.get(G.ids[0]) || {};
     S.unit = G.unit; S.position = G.position || ''; S.session = G.ids.slice();
-    { const m0 = metaCache.get(G.ids[0]) || {}; S.hours = m0.hours || ''; S.reason = m0.status || ''; }
+    S.hours = m0.hours || ''; S.reason = m0.status || ''; S.serial = ''; S.damage = '';
     addRecentUnit(G.unit); save(); preloadSession();
-    go('camera');
-    toast(`Opened ${plural(G.ids.length, 'photo')} for Unit #${G.unit}`);
+    back();
+    toast(`Editing Unit #${G.unit}. Changes you make here update these photos.`);
     return;
   }
   if (d.hdel) {
@@ -1770,8 +1872,16 @@ document.addEventListener('click', async (e) => {
     case 'hide-tip': S.tipHidden = true; save(); renderTip(); break;
     case 'guide-toggle': S.guideClosed = !S.guideClosed; save(); renderGuide(); break;
     case 'clear-all': wipeAll(); break;
+    case 'save-all': saveAllHistory(); break;
   }
 });
+async function saveAllHistory() {
+  let all = [];
+  try { all = await store.allMeta(); } catch (e) {}
+  if (!all.length) { toast('No photos to save'); return; }
+  all.forEach((m) => { if (!metaCache.has(m.id)) metaCache.set(m.id, normStep(m)); });
+  actOnIds(all.map((m) => m.id), 'save', false);
+}
 async function deleteSessionPhoto(id) {
   const m = metaCache.get(id);
   let full = null;
@@ -1783,9 +1893,9 @@ async function deleteSessionPhoto(id) {
     try {
       await store.add(m, full);
       metaCache.set(id, m);
-      cacheBlob(id, full.data);
       S.session.splice(Math.min(Math.max(idx, 0), S.session.length), 0, id);
       save(); renderSession();
+      getStampedBlob(id).catch(() => {});
     } catch (e) {}
   });
 }
