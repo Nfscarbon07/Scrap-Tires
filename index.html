@@ -106,7 +106,11 @@ input{font:inherit;color:inherit}
 @media (max-width:419px){.add-btn .lbl2{display:none}}
 .empty{background:var(--card2);border-radius:14px;padding:30px 20px;color:var(--tx2);text-align:center;line-height:1.55;margin-top:16px;font-size:15px}
 .empty.plain{background:none;padding:22px 10px;margin:0}
-.send-wide{margin-top:14px}
+.act-row{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:14px}
+.act-row .btn{height:50px}
+.pair{display:flex;gap:4px}
+.pair .icon-btn.big{width:54px}
+.icon-btn.dim{opacity:.5}
 .strip{display:flex;gap:12px;overflow-x:auto;padding:4px 2px;margin-top:14px;scrollbar-width:none}
 .strip::-webkit-scrollbar{display:none}
 .th{position:relative;flex:none;width:104px;height:104px;border-radius:12px;overflow:hidden;border:2.5px solid var(--or);background:#222}
@@ -279,16 +283,19 @@ input{font:inherit;color:inherit}
 .v-arrow.l{left:6px}
 .v-arrow.r{right:6px}
 .v-hint{margin:6px 0 0;text-align:center;color:var(--tx3);font-size:13px}
-.v-bottom{display:grid;grid-template-columns:repeat(3,1fr);padding:10px calc(var(--sr) + 8px) calc(var(--sb) + 14px) calc(var(--sl) + 8px)}
+.v-bottom{display:grid;grid-template-columns:repeat(4,1fr);padding:10px calc(var(--sr) + 8px) calc(var(--sb) + 14px) calc(var(--sl) + 8px)}
 .v-bottom button{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:15px;letter-spacing:.6px;padding:10px 0;border-radius:14px}
 .v-bottom button:active{background:rgba(255,255,255,.06)}
 .v-send{color:var(--or-t)}
+.v-save{color:#e8e8e8}
 .v-del{color:var(--red-soft)}
 .v-close{color:#ddd}
 
 /* toast */
 .toast{position:fixed;left:50%;bottom:calc(var(--sb) + 24px);transform:translate(-50%,20px);background:#3a3a3a;color:#fff;padding:12px 10px 12px 16px;border-radius:14px;z-index:90;display:flex;gap:10px;align-items:center;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);box-shadow:0 6px 24px rgba(0,0,0,.55);font-size:15px;line-height:1.35}
-.toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.on.act{pointer-events:auto}
+html.locked .toast{bottom:calc(var(--sb) + 120px)}
 .toast button{color:var(--or-t);font-weight:800;padding:6px 8px;flex:none}
 .toast span{padding-right:6px}
 </style>
@@ -325,7 +332,10 @@ input{font:inherit;color:inherit}
       <button class="btn btn-ghost add-btn" data-action="add-photos" aria-label="Add Photos"><span class="ico" data-ic="imgplus"></span><span class="lbl">Add<span class="lbl2"> Photos</span></span></button>
     </div>
     <div id="home-strip"></div>
-    <button class="btn btn-or wide send-wide" id="home-send" data-action="send" hidden></button>
+    <div class="act-row" id="home-actions" hidden>
+      <button class="btn btn-ghost" data-action="save"><span class="ico" data-ic="download"></span>Save</button>
+      <button class="btn btn-or" id="home-send" data-action="send"></button>
+    </div>
   </div>
 </section>
 
@@ -358,7 +368,10 @@ input{font:inherit;color:inherit}
       <div class="shut-row">
         <button class="icon-btn big" data-action="add-photos" aria-label="Add photos from your library"><span class="ico" data-ic="imgplus"></span></button>
         <button class="shutter" data-action="shutter" aria-label="Take photo"></button>
-        <button class="icon-btn big send-btn" data-action="send" id="cam-send" aria-label="Send photos"><span class="ico" data-ic="send"></span><span class="badge" id="send-badge"></span></button>
+        <div class="pair">
+          <button class="icon-btn big" data-action="save" id="cam-save" aria-label="Save photos"><span class="ico" data-ic="download"></span></button>
+          <button class="icon-btn big send-btn" data-action="send" id="cam-send" aria-label="Send photos"><span class="ico" data-ic="send"></span><span class="badge" id="send-badge"></span></button>
+        </div>
       </div>
       <div class="sess-head sm"><span class="ico or" data-ic="photos"></span><h2>Session Photos</h2><span class="pill" id="cam-pill">0 Captured</span></div>
       <div id="cam-strip"></div>
@@ -440,6 +453,7 @@ const I = {
   chevl: '<path class="s" d="M15 5l-7 7 7 7"/>',
   chevr: '<path class="s" d="M9 5l7 7-7 7"/>',
   plus: '<path class="s" d="M12 5v14M5 12h14"/>',
+  download: '<path class="s" d="M12 3.5v11M7 10l5 5 5-5"/><path class="s" d="M4.5 15.5v3a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3"/>',
   shareios: '<path class="s" d="M12 3v12M8 7l4-4 4 4"/><path class="s" d="M8.5 10.5H6.5a1 1 0 0 0-1 1v8.5a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-8.5a1 1 0 0 0-1-1h-2"/>',
   phone: '<rect class="s" x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path class="s" d="M10.5 18.3h3"/>',
   warn: '<path d="M12 2.5 1.8 20.5h20.4zM11 9h2v6h-2zm0 7.5h2v2h-2z" fill-rule="evenodd"/>'
@@ -453,7 +467,7 @@ const DEF = {
   unit: '', position: '', banner: 'dark', shape: '4:3L',
   positions: ['P1', 'P2', 'P3', 'P4', 'P5', 'P6'],
   includeText: true, unitPad: false, recentUnits: [],
-  session: [], facing: 'environment', tipHidden: false
+  session: [], facing: 'environment', tipHidden: false, saveTipSeen: false
 };
 let S = loadState();
 function loadState() {
@@ -577,6 +591,7 @@ function toast(msg, act, fn) {
   const t = $('#toast');
   t.innerHTML = `<span>${esc(msg)}</span>${act ? `<button type="button">${esc(act)}</button>` : ''}`;
   if (act) t.querySelector('button').onclick = () => { t.classList.remove('on'); if (fn) fn(); };
+  t.classList.toggle('act', !!act);
   t.classList.add('on');
   clearTimeout(toastT);
   toastT = setTimeout(() => t.classList.remove('on'), act ? 5000 : 2800);
@@ -871,14 +886,17 @@ async function doShare(files, text) {
       }
     }
   }
+  downloadFiles(files);
+  toast("This browser can't share photos, so they were downloaded instead");
+  return 'downloaded';
+}
+function downloadFiles(files) {
   files.forEach((f, i) => setTimeout(() => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(f); a.download = f.name;
     document.body.appendChild(a); a.click();
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
-  }, i * 250));
-  toast("This browser can't share photos, so they were downloaded instead");
-  return 'downloaded';
+  }, i * 350));
 }
 async function finishShare(files, metas, fromSession, api) {
   const r = await doShare(files, shareText(metas));
@@ -887,25 +905,63 @@ async function finishShare(files, metas, fromSession, api) {
     if (r === 'sent') { if (fromSession) showNextTire(); else toast('Sent'); }
   }
 }
-// Send = open the phone's share menu right away when the photos are ready.
-function sendIds(ids, fromSession) {
+// Save: iPhone/iPad can only save to Photos through its share menu ("Save Images"),
+// so it opens that menu with just the photos. Android and computers download them.
+async function finishSave(files, api) {
+  const n = files.length;
+  if (isIOS && navigator.share && navigator.canShare) {
+    let ok = false;
+    try { ok = navigator.canShare({ files }); } catch (e) {}
+    if (ok) {
+      try {
+        await navigator.share({ files });
+        if (api) api.close();
+        toast('Done');
+      } catch (e) {
+        if (!e || e.name !== 'AbortError') toast("Couldn't open the save menu. Try again.");
+      }
+      return;
+    }
+  }
+  if (api) api.close();
+  downloadFiles(files);
+  toast(`Downloading ${plural(n, 'photo')}`);
+}
+function iosSaveTip(files) {
+  const n = files.length;
+  const api = overlay(`<div class="dlg"><h3>Save to Photos</h3>
+    <p>Your phone's menu opens next. Tap <b>Save ${n === 1 ? 'Image' : n + ' Images'}</b> to put ${n === 1 ? 'it' : 'them'} in your Photos app.</p>
+    <div class="acts"><button class="tbtn" data-close>Cancel</button><button class="btn btn-or" data-tip-ok>${ic('download')}Got it</button></div></div>`);
+  api.el.querySelector('[data-tip-ok]').addEventListener('click', () => {
+    S.saveTipSeen = true; save();
+    finishSave(files, api);
+  });
+}
+function runAction(mode, files, metas, fromSession, api) {
+  if (mode !== 'save') return finishShare(files, metas, fromSession, api);
+  if (isIOS && !S.saveTipSeen) { if (api) api.close(); return iosSaveTip(files); }
+  return finishSave(files, api);
+}
+// Photos already in memory go straight to the share menu / download (phones only
+// allow that right after a tap); otherwise a small dialog loads them first.
+function actOnIds(ids, mode, fromSession) {
   ids = ids.filter((id) => metaCache.has(id));
   if (!ids.length) { toast('Take a photo first'); return; }
   const metas = ids.map((id) => metaCache.get(id)), n = ids.length;
   if (ids.every((id) => blobCache.has(id))) {
     const files = ids.map((id, k) => new File([blobCache.get(id)], fileName(metas[k], k, n), { type: 'image/jpeg', lastModified: metas[k].ts }));
-    finishShare(files, metas, fromSession);
+    runAction(mode, files, metas, fromSession, null);
     return;
   }
-  sendDialog(ids, metas, fromSession);
+  actionDialog(ids, metas, mode, fromSession);
 }
-// Only used when the full-size photos weren't loaded yet (e.g. sharing from History).
-async function sendDialog(ids, metas, fromSession) {
-  const n = ids.length;
+const sendIds = (ids, fromSession) => actOnIds(ids, 'send', fromSession);
+async function actionDialog(ids, metas, mode, fromSession) {
+  const n = ids.length, verb = mode === 'save' ? 'Save' : 'Send';
   const api = overlay(`<div class="dlg">
-    <h3>Send ${n === 1 ? 'this photo' : n + ' photos'}</h3>
+    <h3>${verb} ${n === 1 ? 'this photo' : n + ' photos'}</h3>
     <div class="sthumbs">${metas.slice(0, 6).map((m) => `<img src="${thumbUrl(m)}" alt="">`).join('')}${n > 6 ? `<span class="more">+${n - 6}</span>` : ''}</div>
-    <div class="acts"><button class="tbtn" data-close>Cancel</button><button class="btn btn-or" data-go-share disabled>${ic('send')}<span>Getting ready…</span></button></div>
+    <div class="acts"><button class="tbtn" data-close>Cancel</button><button class="btn btn-or" data-go-share disabled>${ic(mode === 'save' ? 'download' : 'send')}<span>Getting ready…</span></button></div>
   </div>`);
   const btn = api.el.querySelector('[data-go-share]');
   let files = null;
@@ -915,8 +971,8 @@ async function sendDialog(ids, metas, fromSession) {
   } catch (e) { files = null; }
   if (!files || !files.length) { btn.querySelector('span').textContent = "Couldn't load photos"; return; }
   btn.disabled = false;
-  btn.querySelector('span').textContent = 'Send';
-  btn.addEventListener('click', () => finishShare(files, metas, fromSession, api));
+  btn.querySelector('span').textContent = verb;
+  btn.addEventListener('click', () => runAction(mode, files, metas, fromSession, api));
 }
 function showNextTire() {
   const api = overlay(`<div class="dlg"><h3>Sent!</h3><p>These photos stay in History for 7 days.</p>
@@ -951,7 +1007,7 @@ function openViewer(ids, start) {
   el.innerHTML = `<div class="v-top"><div class="meta"></div><button class="icon-btn" data-v="close" aria-label="Close">${ic('close', 'lg')}</button></div>
     <div class="v-stage"><img alt=""><button class="v-arrow l" data-v="prev" aria-label="Previous photo">${ic('chevl')}</button><button class="v-arrow r" data-v="next" aria-label="Next photo">${ic('chevr')}</button></div>
     <p class="v-hint">Tap the photo to zoom in</p>
-    <div class="v-bottom"><button class="v-send" data-v="send">${ic('send', 'lg')}Send</button><button class="v-del" data-v="del">${ic('trash', 'lg')}Delete</button><button class="v-close" data-v="close">${ic('close', 'lg')}Close</button></div>`;
+    <div class="v-bottom"><button class="v-send" data-v="send">${ic('send', 'lg')}Send</button><button class="v-save" data-v="save">${ic('download', 'lg')}Save</button><button class="v-del" data-v="del">${ic('trash', 'lg')}Delete</button><button class="v-close" data-v="close">${ic('close', 'lg')}Close</button></div>`;
   document.body.appendChild(el);
   document.documentElement.classList.add('locked');
   const img = el.querySelector('img'), stage = el.querySelector('.v-stage');
@@ -1006,6 +1062,7 @@ function openViewer(ids, start) {
     else if (v === 'prev') nav(-1);
     else if (v === 'next') nav(1);
     else if (v === 'send') sendIds([ids[i]], false);
+    else if (v === 'save') actOnIds([ids[i]], 'save', false);
     else if (v === 'del') {
       const id = ids[i];
       if (!(await confirmDlg('Delete this photo?', 'It will be removed from this app for good.'))) return;
@@ -1081,9 +1138,9 @@ function renderSession(scrollEnd) {
   const pill = $('#cam-pill'); pill.textContent = `${n} Captured`; pill.classList.toggle('has', n > 0);
   const badge = $('#send-badge'); badge.textContent = n; badge.classList.toggle('on', n > 0);
   $('#cam-send').classList.toggle('dim', n === 0);
-  const hs = $('#home-send');
-  hs.hidden = n === 0;
-  hs.innerHTML = `${ic('send')}Send ${n === 1 ? 'photo' : n + ' photos'}`;
+  $('#cam-save').classList.toggle('dim', n === 0);
+  $('#home-actions').hidden = n === 0;
+  $('#home-send').innerHTML = `${ic('send')}Send ${n === 1 ? 'photo' : n + ' photos'}`;
   $('#home-strip').innerHTML = stripHTML("No photos in this session yet.<br>Tap TAKE INSPECTION PHOTOS, or Add to pick from your photos.");
   $('#cam-strip').innerHTML = stripHTML('No photos captured in this session yet', true);
   if (scrollEnd) $$('.strip').forEach((s) => { s.scrollLeft = s.scrollWidth; });
@@ -1262,6 +1319,7 @@ document.addEventListener('click', async (e) => {
     case 'add-photos': if (checkReady()) $('#file-add').click(); break;
     case 'shutter': shoot(); break;
     case 'send': sendIds(S.session.slice(), true); break;
+    case 'save': actOnIds(S.session.slice(), 'save', true); break;
     case 'torch': toggleTorch(); break;
     case 'flip': flipCamera(); break;
     case 'cam-retry': startCamera(); break;
