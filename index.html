@@ -1,0 +1,1389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121212">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tire Photos">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<title>Scrap Tire Inspection</title>
+<style>
+:root{
+  --bg:#121212; --card:#1e1e1e; --card2:#2c2c2c; --hero:#3d1500; --dlg:#2b2930;
+  --or:#ff5a00; --or-t:#ff6d1f; --line:#938f99; --line2:#49454f; --btn:#444;
+  --tx:#f2f2f2; --tx2:#bdbdbd; --tx3:#8e8e8e; --red:#e53935; --red-soft:#ff7070;
+  --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px);
+  --sl:env(safe-area-inset-left,0px); --sr:env(safe-area-inset-right,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Roboto,"Segoe UI",Arial,sans-serif;-webkit-text-size-adjust:100%}
+body{min-height:100vh;min-height:100dvh;overscroll-behavior-y:none}
+body.cam-on{background:#000}
+html.locked,html.locked body{overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;touch-action:manipulation;text-align:inherit}
+button:disabled{opacity:.5;cursor:default}
+input{font:inherit;color:inherit}
+[hidden]{display:none!important}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;left:-10px;top:0}
+.ic{width:24px;height:24px;display:block;flex:none;fill:currentColor}
+.ic .s{fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+.ic.lg{width:30px;height:30px}
+.ic.sm{width:20px;height:20px}
+.ic.inl{display:inline-block;width:18px;height:18px;vertical-align:-3px}
+.ico{display:inline-flex;align-items:center;justify-content:center;flex:none}
+.or{color:var(--or)}
+
+.screen{display:none;padding:calc(var(--st) + 14px) calc(var(--sr) + 14px) calc(var(--sb) + 28px) calc(var(--sl) + 14px);max-width:640px;margin:0 auto}
+.screen.on{display:block}
+
+/* buttons */
+.icon-btn{width:44px;height:44px;display:grid;place-items:center;border-radius:50%;flex:none}
+.icon-btn:active{background:rgba(255,255,255,.08)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 18px;border-radius:14px;font-weight:700;font-size:16px;white-space:nowrap}
+.btn .ic{width:22px;height:22px}
+.btn-or{background:var(--or);color:#fff}
+.btn-or:active{background:#e04f00}
+.btn-ghost{border:1.5px solid #5a5a5a;color:var(--tx)}
+.btn-ghost:active{background:rgba(255,255,255,.06)}
+.btn-danger{background:#5b1d1d;color:#ffb4ab;border:1.5px solid #8c2a2a}
+.wide{width:100%}
+.tbtn{height:44px;padding:0 14px;border-radius:22px;color:var(--or-t);font-weight:700;font-size:16px}
+.tbtn:active{background:rgba(255,90,0,.12)}
+
+/* home */
+.tip{display:flex;align-items:center;gap:12px;background:var(--card2);border-radius:16px;padding:10px 6px 10px 14px;margin-bottom:12px;font-size:14px;line-height:1.4;color:var(--tx2)}
+.tip b{color:var(--tx)}
+.tip.warn{border:1.5px solid #8c2a2a}
+.tip > div{flex:1}
+.hero{background:var(--hero);border-radius:20px;padding:16px 12px 16px 16px;display:flex;align-items:center;gap:10px}
+.hero-car{color:#fff}
+.hero-car .ic{width:40px;height:40px}
+.hero-txt{flex:1;min-width:0}
+.hero h1{margin:0;font-size:21px;line-height:1.15;font-weight:800}
+.hero p{margin:5px 0 0;color:#f3b48a;font-size:13.5px;line-height:1.3}
+.hero-act{display:flex;align-items:center;gap:4px;flex:none}
+.hist-btn{height:44px;padding:0 14px;font-size:15px;border-radius:12px}
+.card{background:var(--card);border-radius:22px;padding:18px;margin-top:16px}
+.card h2{margin:0 0 16px;font-size:19px;font-weight:700}
+.boss{background:var(--card2);border:3px solid var(--or);display:flex;align-items:center;gap:14px;padding:16px 14px}
+.boss .boss-ic{color:var(--or)}
+.boss .boss-ic .ic{width:36px;height:36px}
+.boss .who{flex:1;min-width:0}
+.boss .lbl{font-size:13px;color:var(--tx2);font-weight:700}
+.boss .name{font-weight:700;font-size:16px;line-height:1.45;margin-top:4px;overflow-wrap:anywhere}
+.boss .ph{color:var(--or-t);margin-top:4px;font-size:15px}
+.boss .stale{color:var(--tx3);font-size:13px;margin-top:4px;line-height:1.35}
+.boss .btn{height:46px;padding:0 14px;font-size:15px}
+.field{width:100%;height:60px;background:transparent;border:1.5px solid var(--line);border-radius:6px;padding:0 16px;font-size:18px;outline:none;-webkit-appearance:none;appearance:none}
+.field:focus{border:2px solid var(--or);padding:0 15.5px}
+.field::placeholder{color:#cfcfcf;opacity:1}
+.field.sm{height:52px;font-size:17px;margin-bottom:10px}
+.recent{display:flex;align-items:center;gap:10px;margin:14px 0 2px}
+.recent .lbl{display:flex;align-items:center;gap:6px;color:var(--tx2);font-size:14px;flex:none}
+.recent .lbl .ic{width:20px;height:20px}
+.chips{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:2px;flex:1;min-width:0}
+.chips::-webkit-scrollbar{display:none}
+.chip{display:flex;align-items:center;height:40px;border:1.5px solid var(--line2);border-radius:10px;font-weight:700;font-size:15px;flex:none;overflow:hidden}
+.chip .cu{height:100%;padding:0 4px 0 14px;display:flex;align-items:center}
+.chip .cx{width:34px;height:100%;display:grid;place-items:center;color:var(--tx2)}
+.chip .cx .ic{width:18px;height:18px}
+.sec{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;margin:20px 0 14px}
+.sec .ico{color:var(--or)}
+.pos-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.pos{flex:1 0 auto;min-width:46px;max-width:120px;height:46px;padding:0 10px;border:1.5px solid var(--line2);border-radius:12px;font-weight:700;font-size:16px;text-align:center;white-space:nowrap}
+.pos.sel{background:var(--or);border-color:var(--or);color:#fff}
+.pos-row.filled .pos{background:var(--btn);border-color:var(--btn)}
+.pos-row.filled .pos.sel{background:var(--or);border-color:var(--or)}
+.take{width:100%;margin-top:16px;height:72px;border-radius:22px;background:var(--or);color:#fff;font-weight:800;font-size:19px;display:flex;align-items:center;justify-content:center;gap:14px;letter-spacing:.2px;text-align:center}
+.take:active{background:#e04f00}
+.take .ic{width:34px;height:34px}
+.sess-head{display:flex;align-items:center;gap:8px}
+.sess-head h2{margin:0;font-size:18px;white-space:nowrap}
+.sess-head .count,.sess-head .pill{margin-right:auto}
+.sess-head .ico .ic{width:28px;height:28px}
+.count{min-width:34px;height:28px;padding:0 10px;border-radius:14px;background:#9e9e9e;color:#1b1b1b;font-weight:800;display:grid;place-items:center;font-size:15px}
+.count.has{background:var(--or);color:#fff}
+.add-btn{height:44px;padding:0 12px;font-size:14px;border-radius:22px;gap:6px}
+.add-btn .ic{width:20px;height:20px}
+@media (max-width:419px){.add-btn .lbl2{display:none}}
+.empty{background:var(--card2);border-radius:14px;padding:30px 20px;color:var(--tx2);text-align:center;line-height:1.55;margin-top:16px;font-size:15px}
+.empty.plain{background:none;padding:22px 10px;margin:0}
+.send-wide{margin-top:14px}
+.strip{display:flex;gap:12px;overflow-x:auto;padding:4px 2px;margin-top:14px;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.th{position:relative;flex:none;width:104px;height:104px;border-radius:12px;overflow:hidden;border:2.5px solid var(--or);background:#222}
+.th-img{display:block;width:100%;height:100%}
+.th img{width:100%;height:100%;object-fit:cover;display:block}
+.th .n{position:absolute;left:5px;bottom:5px;background:rgba(0,0,0,.8);color:var(--or-t);font-weight:800;font-size:13px;padding:3px 7px;border-radius:6px;pointer-events:none}
+.th .x{position:absolute;right:3px;top:3px;width:32px;height:32px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+.th .x .ic{width:18px;height:18px}
+
+/* camera */
+.screen.cam{padding:0;max-width:none}
+.cam-top{position:sticky;top:0;z-index:5;background:#000;display:flex;align-items:center;gap:2px;padding:calc(var(--st) + 6px) calc(var(--sr) + 6px) 6px calc(var(--sl) + 6px)}
+.cam-title{flex:1;text-align:center;min-width:0;line-height:1.3}
+.cam-title b{display:block;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cam-title span{color:var(--or-t);font-size:14px;font-weight:700}
+.cam-top .dim{opacity:.45}
+.cam-body{max-width:640px;margin:0 auto}
+.preview{--ar:1.3333;position:relative;width:min(100%, calc(44vh * var(--ar)));aspect-ratio:var(--ar);margin:0 auto;background:#111;overflow:hidden}
+@supports (height:1svh){.preview{width:min(100%, calc(44svh * var(--ar)))}}
+.preview video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.preview.mirror video{transform:scaleX(-1)}
+.ar-badge{position:absolute;right:8px;top:8px;background:rgba(40,40,40,.85);font-size:13px;padding:6px 8px;border-radius:6px;pointer-events:none}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.flash.go{animation:fl .28s ease-out}
+@keyframes fl{0%{opacity:.85}100%{opacity:0}}
+.cam-msg{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:16px 22px;color:var(--tx2);background:#111;font-size:15px;line-height:1.45}
+.cam-msg.on{display:flex}
+.cam-msg b{color:var(--tx);font-size:16px}
+.cam-ctl{padding:14px calc(var(--sr) + 14px) calc(var(--sb) + 20px) calc(var(--sl) + 14px)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:2px}
+.of{position:relative;display:block}
+.of span{position:absolute;left:12px;top:-9px;background:#000;padding:0 6px;font-size:13px;color:var(--tx2);pointer-events:none}
+.of input{width:100%;height:58px;background:transparent;border:1.5px solid #888;border-radius:6px;padding:0 14px;font-size:18px;outline:none;-webkit-appearance:none;appearance:none}
+.of input:focus{border:2px solid var(--or);padding:0 13.5px}
+.bn-row{display:flex;align-items:center;gap:10px;margin:16px 0 12px;font-size:15px;flex-wrap:wrap}
+.seg{height:42px;padding:0 16px;border-radius:10px;background:var(--btn);font-weight:700;font-size:15px}
+.seg.sel{background:var(--or);color:#fff}
+.bprev{border:2px solid var(--or);border-radius:0 0 16px 16px;background:#1e1e1e;padding:14px 18px}
+.bprev .l1{font-weight:800;font-size:20px;overflow-wrap:anywhere}
+.bprev .u{color:var(--or-t)}
+.bprev .p{color:#fff}
+.bprev .l2{color:#a8a8a8;margin-top:8px;font-size:14px;letter-spacing:1.5px;font-variant-numeric:tabular-nums}
+.bprev.white{background:#fafafa;border-color:#d8d8d8}
+.bprev.white .u{color:#c2410c}
+.bprev.white .p{color:#111}
+.bprev.white .l2{color:#555}
+.shut-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin:18px 0 10px}
+.shut-row > :first-child,.shut-row > :last-child{justify-self:center}
+.shutter{width:94px;height:94px;border-radius:50%;border:6px solid var(--or);background:#000;padding:6px;display:block}
+.shutter::after{content:"";width:100%;height:100%;border-radius:50%;background:#fff;display:block;transition:transform .08s}
+.shutter:active::after{transform:scale(.9)}
+.icon-btn.big{width:60px;height:60px;border-radius:16px}
+.icon-btn.big .ic{width:38px;height:38px}
+.send-btn{position:relative}
+.send-btn.dim{opacity:.5}
+.badge{position:absolute;right:0;top:-2px;min-width:26px;height:26px;border-radius:13px;background:var(--or);color:#fff;font-size:14px;font-weight:800;display:none;place-items:center;padding:0 7px}
+.badge.on{display:grid}
+.pill{height:28px;padding:0 12px;border-radius:14px;background:#9e9e9e;color:#1b1b1b;font-weight:800;display:grid;place-items:center;font-size:14px}
+.pill.has{background:var(--or);color:#fff}
+.sess-head.sm{margin-top:8px}
+.sess-head.sm h2{font-size:18px}
+.sess-head.sm .ico .ic{width:26px;height:26px}
+
+@media (orientation:portrait) and (max-height:740px){
+  .preview{width:min(100%, calc(38vh * var(--ar)))}
+  .cam-ctl{padding-top:10px}
+  .pos{height:42px}
+  .of input{height:52px}
+  .bn-row{margin:12px 0 10px}
+  .seg{height:38px}
+  .bprev{padding:10px 14px}
+  .bprev .l1{font-size:18px}
+  .bprev .l2{margin-top:4px}
+  .shut-row{margin:12px 0 6px}
+  .shutter{width:82px;height:82px;border-width:5px;padding:5px}
+}
+@media (orientation:landscape) and (max-height:540px){
+  .cam-body{display:flex;align-items:flex-start;max-width:none}
+  .cam-left{flex:none;padding-left:var(--sl)}
+  .preview{width:auto;height:calc(100vh - 66px - var(--st));max-width:none;margin:0}
+  .cam-ctl{flex:1;min-width:0;height:calc(100vh - 66px - var(--st));overflow-y:auto;padding-top:10px}
+}
+
+/* history + settings */
+.topbar{display:flex;align-items:center;gap:8px;margin:0 0 18px}
+.topbar .t{flex:1;min-width:0}
+.topbar h1{margin:0;font-size:23px;line-height:1.15}
+.topbar p{margin:3px 0 0;color:var(--tx2);font-size:14px}
+.topbar .or .ic{width:34px;height:34px}
+.del-all{color:#f4b7b2}
+.hcard{border:2.5px solid var(--or);background:var(--card);border-radius:22px;padding:16px;margin-bottom:16px}
+.hhead{display:flex;align-items:center;gap:10px;color:var(--or-t);font-weight:800;font-size:21px}
+.hhead .ic{width:30px;height:30px}
+.hhead .nm{flex:1;min-width:0;overflow-wrap:anywhere}
+.hhead .pill{background:var(--or);color:#fff}
+.hgroup{background:var(--card2);border-radius:16px;padding:14px;margin-top:14px}
+.hg-top{display:flex;align-items:center;gap:8px;font-weight:800;letter-spacing:.5px;font-size:15px}
+.hg-top .ic{color:var(--or)}
+.hg-top .ps{flex:1;min-width:0;overflow-wrap:anywhere}
+.hg-top .tm{color:var(--tx2);font-weight:500;font-size:13.5px;letter-spacing:0;white-space:nowrap}
+.hthumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin:12px 0 14px}
+.hthumbs button{aspect-ratio:1;border-radius:10px;overflow:hidden;background:#222;display:block}
+.hthumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.hbtns{display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:8px}
+.hbtns .btn{height:46px;padding:0 6px;font-size:15px;gap:6px;border-radius:12px}
+.hbtns .btn .ic{width:20px;height:20px}
+.muted{color:var(--tx2)}
+.center{text-align:center}
+.set h3{margin:26px 0 6px;font-size:18px}
+.set h3:first-child{margin-top:4px}
+.set .note{color:var(--tx2);font-size:14px;line-height:1.45;margin:0 0 12px}
+.set .note.sm{font-size:13px;margin:-4px 0 10px}
+.set .grp{color:var(--or-t);font-weight:700;margin:18px 0 10px;display:flex;align-items:center;gap:8px;font-size:16px}
+.opt{width:100%;display:flex;align-items:center;gap:16px;background:var(--card2);border:2.5px solid transparent;border-radius:18px;padding:12px 16px;margin-bottom:10px;text-align:left}
+.opt.sel{border-color:var(--or)}
+.opt .sw{width:64px;height:56px;display:flex;align-items:center;justify-content:center;gap:5px;flex:none}
+.opt .sw i{display:block;background:#888;border-radius:4px}
+.opt.sel .sw i{background:var(--or)}
+.opt .ot{flex:1;min-width:0}
+.opt b{display:block;font-size:17px}
+.opt small{color:var(--tx2);font-size:14px;display:block;margin-top:3px;line-height:1.3}
+.rd{width:26px;height:26px;border-radius:50%;border:2.5px solid #ddd;flex:none;display:grid;place-items:center}
+.sel > .rd{border-color:var(--or)}
+.sel > .rd::after{content:"";width:12px;height:12px;border-radius:50%;background:var(--or)}
+.row-btns{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.segs{display:flex;gap:10px;flex-wrap:wrap}
+.toggle-row{width:100%;display:flex;align-items:center;gap:14px;background:var(--card2);border-radius:18px;padding:14px 16px;text-align:left}
+.toggle-row .tt{flex:1}
+.toggle-row b{display:block;font-size:16px}
+.toggle-row small{display:block;color:var(--tx2);font-size:14px;margin-top:3px;line-height:1.35}
+.sw-t{width:52px;height:32px;border-radius:16px;background:#555;position:relative;flex:none}
+.sw-t::after{content:"";position:absolute;left:4px;top:4px;width:24px;height:24px;border-radius:50%;background:#ddd;transition:left .15s}
+.sw-t.on{background:var(--or)}
+.sw-t.on::after{left:24px;background:#fff}
+.ver{color:var(--tx3);font-size:13px;margin-top:28px;text-align:center}
+
+/* dialogs */
+.ov{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:calc(var(--st) + 16px) 16px calc(var(--sb) + 16px)}
+.dlg{background:var(--dlg);border-radius:28px;padding:24px 22px 18px;width:100%;max-width:420px;max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.dlg h3{margin:0 0 14px;font-size:24px;line-height:1.2}
+.dlg p{color:var(--tx2);line-height:1.45;margin:0 0 12px;font-size:15px}
+.dlg p b{color:var(--tx)}
+.acts{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:16px;flex-wrap:wrap}
+.stack{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.avatar{width:52px;height:52px;border-radius:50%;background:var(--or);color:#fff;font-weight:800;font-size:19px;display:grid;place-items:center;flex:none}
+.avatar.sm{width:44px;height:44px;font-size:16px}
+.avatar.grey{background:#555}
+.sthumbs{display:flex;gap:8px;overflow-x:auto;margin-bottom:16px;scrollbar-width:none}
+.sthumbs img{width:64px;height:64px;object-fit:cover;border-radius:10px;flex:none;border:2px solid #444}
+.sthumbs .more{width:64px;height:64px;border-radius:10px;background:#3a3a3a;display:grid;place-items:center;font-weight:800;flex:none}
+.sto{display:flex;align-items:center;gap:12px;background:#1f1d22;border-radius:16px;padding:12px}
+.sto-t{flex:1;min-width:0;line-height:1.35}
+.sto-t small{display:block;color:var(--tx2);font-size:13px}
+.sto-t b{display:block;font-size:17px;overflow-wrap:anywhere}
+.sto-t .ph{color:var(--or-t);font-size:14px}
+.hint{margin-top:14px!important;font-size:14px!important}
+.crow{display:flex;align-items:center;gap:4px;border-radius:16px;margin-bottom:8px;background:#1f1d22;border:2px solid transparent}
+.crow.sel{border-color:var(--or)}
+.cpick{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:10px 12px;text-align:left}
+.cinfo{flex:1;min-width:0;line-height:1.35}
+.cinfo b{display:block;overflow-wrap:anywhere}
+.cinfo small{color:var(--or-t)}
+.crow .rd{margin-left:auto}
+.cdel{color:var(--tx3)}
+.cadd{margin-top:16px}
+.cadd .grp{color:var(--or-t);font-weight:700;margin-bottom:10px}
+
+/* viewer */
+.viewer{position:fixed;inset:0;z-index:60;background:#000;display:flex;flex-direction:column}
+.v-top{display:flex;align-items:flex-start;gap:10px;padding:calc(var(--st) + 12px) calc(var(--sr) + 12px) 8px calc(var(--sl) + 18px)}
+.v-top .meta{flex:1;font-size:14.5px;line-height:1.5;font-weight:600}
+.v-top .meta b{color:var(--or-t);font-size:22px;display:block;line-height:1.3}
+.v-stage{flex:1;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:0}
+.v-stage img{max-width:100%;max-height:100%;object-fit:contain;display:block;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.v-stage.zoom{overflow:auto;display:block;-webkit-overflow-scrolling:touch}
+.v-stage.zoom img{max-width:none;max-height:none;width:260%}
+.v-stage.zoom .v-arrow{display:none}
+.v-arrow{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:68px;background:rgba(0,0,0,.5);border-radius:12px;display:grid;place-items:center;color:#fff}
+.v-arrow.l{left:6px}
+.v-arrow.r{right:6px}
+.v-hint{margin:6px 0 0;text-align:center;color:var(--tx3);font-size:13px}
+.v-bottom{display:grid;grid-template-columns:repeat(3,1fr);padding:10px calc(var(--sr) + 8px) calc(var(--sb) + 14px) calc(var(--sl) + 8px)}
+.v-bottom button{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:15px;letter-spacing:.6px;padding:10px 0;border-radius:14px}
+.v-bottom button:active{background:rgba(255,255,255,.06)}
+.v-send{color:var(--or-t)}
+.v-del{color:var(--red-soft)}
+.v-close{color:#ddd}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(var(--sb) + 24px);transform:translate(-50%,20px);background:#3a3a3a;color:#fff;padding:12px 10px 12px 16px;border-radius:14px;z-index:90;display:flex;gap:10px;align-items:center;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);box-shadow:0 6px 24px rgba(0,0,0,.55);font-size:15px;line-height:1.35}
+.toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{color:var(--or-t);font-weight:800;padding:6px 8px;flex:none}
+.toast span{padding-right:6px}
+</style>
+</head>
+<body>
+
+<!-- ============ HOME ============ -->
+<section class="screen" id="scr-home">
+  <div id="tip"></div>
+  <header class="hero">
+    <span class="ico hero-car" data-ic="car"></span>
+    <div class="hero-txt"><h1>Scrap Tire Inspection</h1><p>Quick &amp; Easy Captures for Scrap Tires</p></div>
+    <div class="hero-act">
+      <button class="icon-btn" data-go="settings" aria-label="Settings"><span class="ico" data-ic="gear"></span></button>
+      <button class="btn btn-or hist-btn" data-go="history"><span class="ico" data-ic="history"></span>History</button>
+    </div>
+  </header>
+
+  <div class="card boss" id="boss-card"></div>
+
+  <div class="card">
+    <h2>Job Session Setup</h2>
+    <input class="field" id="home-unit" placeholder="Unit Number" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done">
+    <div class="recent" id="recent"></div>
+    <div class="sec"><span class="ico" data-ic="tirepos"></span>Tire Position Selector</div>
+    <div class="pos-row" id="home-pos"></div>
+    <input class="field" id="home-position" placeholder="Selected / Custom Tire Position" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done">
+  </div>
+
+  <button class="take" data-action="take"><span class="ico" data-ic="camera"></span>TAKE INSPECTION PHOTOS</button>
+
+  <div class="card">
+    <div class="sess-head">
+      <span class="ico or" data-ic="photos"></span><h2>Session Photos</h2>
+      <span class="count" id="home-count">0</span>
+      <button class="btn btn-ghost add-btn" data-action="add-photos" aria-label="Add Photos"><span class="ico" data-ic="imgplus"></span><span class="lbl">Add<span class="lbl2"> Photos</span></span></button>
+    </div>
+    <div id="home-strip"></div>
+    <button class="btn btn-or wide send-wide" id="home-send" data-action="send" hidden></button>
+  </div>
+</section>
+
+<!-- ============ CAMERA ============ -->
+<section class="screen cam" id="scr-camera">
+  <div class="cam-top">
+    <button class="icon-btn" data-back aria-label="Back"><span class="ico" data-ic="back"></span></button>
+    <div class="cam-title"><b>Tire Inspection Camera</b><span id="cam-count">0 Photos Captured</span></div>
+    <button class="icon-btn" data-action="torch" id="btn-torch" aria-label="Flash"></button>
+    <button class="icon-btn" data-action="flip" aria-label="Switch camera"><span class="ico" data-ic="flip"></span></button>
+    <button class="icon-btn" data-go="settings" aria-label="Settings"><span class="ico" data-ic="gear"></span></button>
+  </div>
+  <div class="cam-body">
+    <div class="cam-left">
+      <div class="preview" id="preview">
+        <video id="video" autoplay muted playsinline></video>
+        <span class="ar-badge" id="ar-badge">4:3</span>
+        <div class="flash" id="flashfx"></div>
+        <div class="cam-msg" id="cam-msg"></div>
+      </div>
+    </div>
+    <div class="cam-ctl">
+      <div class="pos-row filled" id="cam-pos"></div>
+      <div class="two">
+        <label class="of"><span>Unit #</span><input id="cam-unit" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done"></label>
+        <label class="of"><span>Position</span><input id="cam-position" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done"></label>
+      </div>
+      <div class="bn-row"><span class="ico or" data-ic="banner"></span><span>Banner:</span><button class="seg" data-banner="dark">Dark</button><button class="seg" data-banner="white">Polaroid White</button></div>
+      <div class="bprev" id="bprev"></div>
+      <div class="shut-row">
+        <button class="icon-btn big" data-action="add-photos" aria-label="Add photos from your library"><span class="ico" data-ic="imgplus"></span></button>
+        <button class="shutter" data-action="shutter" aria-label="Take photo"></button>
+        <button class="icon-btn big send-btn" data-action="send" id="cam-send" aria-label="Send photos"><span class="ico" data-ic="send"></span><span class="badge" id="send-badge"></span></button>
+      </div>
+      <div class="sess-head sm"><span class="ico or" data-ic="photos"></span><h2>Session Photos</h2><span class="pill" id="cam-pill">0 Captured</span></div>
+      <div id="cam-strip"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HISTORY ============ -->
+<section class="screen" id="scr-history">
+  <div class="topbar">
+    <button class="icon-btn" data-back aria-label="Back"><span class="ico" data-ic="back"></span></button>
+    <span class="ico or" data-ic="history"></span>
+    <div class="t"><h1>7-Day Inspection History</h1><p>Photos automatically purge after 7 days</p></div>
+    <button class="icon-btn del-all" data-action="clear-all" aria-label="Delete all photos"><span class="ico" data-ic="trash"></span></button>
+  </div>
+  <div id="hist-list"></div>
+</section>
+
+<!-- ============ SETTINGS ============ -->
+<section class="screen set" id="scr-settings">
+  <div class="topbar">
+    <button class="icon-btn" data-back aria-label="Back"><span class="ico" data-ic="back"></span></button>
+    <span class="ico or" data-ic="gear"></span>
+    <div class="t"><h1>Settings</h1></div>
+  </div>
+  <div id="set-body"></div>
+</section>
+
+<input type="file" class="vh" id="file-add" accept="image/*" multiple tabindex="-1" aria-hidden="true">
+<input type="file" class="vh" id="file-cam" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+const VERSION = '1.0.0';
+const KEEP_DAYS = 7, DAY = 864e5, MAX_EDGE = 2400, THUMB = 360;
+
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const pad2 = (n) => String(n).padStart(2, '0');
+
+/* ---------------- icons ---------------- */
+function gearD() {
+  const n = 8, R = 10.3, r = 7.5, c = 12, st = Math.PI * 2 / n;
+  let d = '';
+  for (let i = 0; i < n; i++) {
+    const a = i * st - Math.PI / 2;
+    [[a - st * .17, R], [a + st * .17, R], [a + st * .3, r], [a + st * .7, r]].forEach(([g, rad], j) => {
+      d += (i === 0 && j === 0 ? 'M' : 'L') + (c + rad * Math.cos(g)).toFixed(2) + ' ' + (c + rad * Math.sin(g)).toFixed(2);
+    });
+  }
+  return d + 'ZM15.3 12A3.3 3.3 0 1 0 8.7 12A3.3 3.3 0 1 0 15.3 12Z';
+}
+const FLASH = '<path d="M13.5 2 5 13.2h6.2L10 22l8.8-11.6h-6.3z"/>';
+const I = {
+  back: '<path class="s" d="M20 12H4.5M11 5l-7 7 7 7"/>',
+  car: '<path fill-rule="evenodd" d="M4.5 11 6.3 6.4A2 2 0 0 1 8.2 5h7.6a2 2 0 0 1 1.9 1.4l1.8 4.6a1.5 1.5 0 0 1 1.5 1.5V17a1 1 0 0 1-1 1h-1v1.5a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1V18H8v1.5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V18H4a1 1 0 0 1-1-1v-4.5A1.5 1.5 0 0 1 4.5 11zM7 10.5h10l-1.1-3.1a.8.8 0 0 0-.7-.4H8.8a.8.8 0 0 0-.7.4zM7 15.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm10 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>',
+  gear: '<path fill-rule="evenodd" d="' + gearD() + '"/>',
+  history: '<path class="s" d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path class="s" d="M3 4.5v4.2h4.2"/><path class="s" d="M12 7.5V12l3 2"/>',
+  person: '<circle cx="12" cy="7.5" r="4"/><path d="M4 20.5c0-4.2 3.6-6.8 8-6.8s8 2.6 8 6.8z"/>',
+  contact: '<path fill-rule="evenodd" d="M6 2h8.5L20 7.5V21a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm6.5 11.2a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8zM8 18.5h9c0-2.2-2-3.6-4.5-3.6S8 16.3 8 18.5z"/>',
+  tirepos: '<rect class="s" x="3" y="3.5" width="7.5" height="17" rx="2.2"/><path class="s" d="M3 8.5h7.5M3 15.5h7.5"/><path class="s" d="M17.5 21s-4.3-4.4-4.3-7.8a4.3 4.3 0 0 1 8.6 0c0 3.4-4.3 7.8-4.3 7.8z"/><circle cx="17.5" cy="13.2" r="1.5"/>',
+  camera: '<path fill-rule="evenodd" d="M8.8 4h6.4l1.6 2.2H20a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.2a2 2 0 0 1 2-2h3.2zM12 17.3a4.4 4.4 0 1 0 0-8.8 4.4 4.4 0 0 0 0 8.8zm0-2.1a2.3 2.3 0 1 0 0-4.6 2.3 2.3 0 0 0 0 4.6z"/>',
+  photos: '<rect class="s" x="7" y="3" width="14" height="14" rx="2"/><path class="s" d="M3.5 7v11.5A2.5 2.5 0 0 0 6 21h11.5"/><path class="s" d="m9 14.5 3.2-3.5 2.5 2.5 1.8-1.8 2.5 2.6"/>',
+  imgplus: '<path d="M18 2.5h2v3h3v2h-3v3h-2v-3h-3v-2h3z"/><path d="M4 6.5h9v2H5v11h11v-6h2v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-13a1 1 0 0 1 1-1z"/><path d="m6.5 17.5 3-4 2.2 2.8 1.6-2 2.7 3.2z"/>',
+  send: '<path d="M3 20.5v-6.8l9.5-1.7L3 10.3V3.5L22 12z"/>',
+  flash: FLASH,
+  flashoff: FLASH + '<path d="M3.5 3.5l17 17" stroke="#000" stroke-width="5" stroke-linecap="round"/><path class="s" d="M3.5 3.5l17 17"/>',
+  flip: '<path class="s" d="M4.3 9.5a8 8 0 0 1 14.2-3.8M19.7 14.5a8 8 0 0 1-14.2 3.8"/><path class="s" d="M19 2.8v3.6h-3.6M5 21.2v-3.6h3.6"/><circle cx="12" cy="12" r="2.6"/>',
+  trash: '<path d="M9 2.5h6l1 1.5h4.5v2h-17V4H8z"/><path d="M5.5 7.5h13l-1 13a1.6 1.6 0 0 1-1.6 1.5H8.1a1.6 1.6 0 0 1-1.6-1.5z"/>',
+  pencil: '<path d="M4 17.2V20h2.8l10.4-10.4-2.8-2.8zM19.6 7.2a1 1 0 0 0 0-1.4l-1.4-1.4a1 1 0 0 0-1.4 0l-1.3 1.3 2.8 2.8z"/>',
+  share: '<circle cx="18" cy="5.5" r="2.8"/><circle cx="6" cy="12" r="2.8"/><circle cx="18" cy="18.5" r="2.8"/><path class="s" d="m8.5 10.6 7-3.7M8.5 13.4l7 3.7"/>',
+  close: '<path class="s" d="M6 6l12 12M18 6 6 18"/>',
+  banner: '<rect x="8.5" y="3" width="11" height="16" rx="1.5" transform="rotate(12 14 11)"/><rect x="3.5" y="6" width="8" height="14" rx="1.5" transform="rotate(-10 7.5 13)" opacity=".65"/>',
+  rotate: '<rect class="s" x="8" y="2.5" width="8" height="13.5" rx="1.6"/><path class="s" d="M3.5 13.5a8.5 8.5 0 0 0 8 8M20.5 10.5a8.5 8.5 0 0 0-3-6.2"/><path class="s" d="M9 18.8l2.6 2.7-2.6 2"/>',
+  chevl: '<path class="s" d="M15 5l-7 7 7 7"/>',
+  chevr: '<path class="s" d="M9 5l7 7-7 7"/>',
+  plus: '<path class="s" d="M12 5v14M5 12h14"/>',
+  shareios: '<path class="s" d="M12 3v12M8 7l4-4 4 4"/><path class="s" d="M8.5 10.5H6.5a1 1 0 0 0-1 1v8.5a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-8.5a1 1 0 0 0-1-1h-2"/>',
+  phone: '<rect class="s" x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path class="s" d="M10.5 18.3h3"/>',
+  warn: '<path d="M12 2.5 1.8 20.5h20.4zM11 9h2v6h-2zm0 7.5h2v2h-2z" fill-rule="evenodd"/>'
+};
+const ic = (n, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true">${I[n] || ''}</svg>`;
+function paintIcons(root = document) { $$('[data-ic]', root).forEach((el) => { el.innerHTML = ic(el.dataset.ic); }); }
+
+/* ---------------- saved settings ---------------- */
+const KEY = 'scrapTire.state.v1';
+const DEF = {
+  unit: '', position: '', banner: 'dark', shape: '4:3L',
+  positions: ['P1', 'P2', 'P3', 'P4', 'P5', 'P6'],
+  includeText: true, unitPad: false, recentUnits: [], contacts: [],
+  bossId: null, bossDate: '', session: [], facing: 'environment', tipHidden: false
+};
+let S = loadState();
+function loadState() {
+  const base = JSON.parse(JSON.stringify(DEF));
+  try {
+    const o = JSON.parse(localStorage.getItem(KEY) || '{}');
+    const s = Object.assign(base, o && typeof o === 'object' ? o : {});
+    ['positions', 'recentUnits', 'contacts', 'session'].forEach((k) => { if (!Array.isArray(s[k])) s[k] = JSON.parse(JSON.stringify(DEF[k])); });
+    if (!s.positions.length) s.positions = DEF.positions.slice();
+    return s;
+  } catch (e) { return base; }
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+/* ---------------- photo storage (stays on this phone) ---------------- */
+const DB = {
+  d: null,
+  open() {
+    return new Promise((res, rej) => {
+      let r;
+      try { r = indexedDB.open('scrap-tire-photos', 1); } catch (e) { rej(e); return; }
+      r.onupgradeneeded = () => {
+        const d = r.result;
+        if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta', { keyPath: 'id' }).createIndex('ts', 'ts');
+        if (!d.objectStoreNames.contains('full')) d.createObjectStore('full', { keyPath: 'id' });
+      };
+      r.onsuccess = () => { this.d = r.result; res(); };
+      r.onerror = () => rej(r.error);
+      r.onblocked = () => rej(new Error('blocked'));
+    });
+  },
+  req(r) { return new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); },
+  done(tx) { return new Promise((res, rej) => { tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error); }); },
+  add(meta, full) { const tx = this.d.transaction(['meta', 'full'], 'readwrite'); tx.objectStore('meta').put(meta); tx.objectStore('full').put(full); return this.done(tx); },
+  allMeta() { return this.req(this.d.transaction('meta').objectStore('meta').getAll()); },
+  getMeta(id) { return this.req(this.d.transaction('meta').objectStore('meta').get(id)); },
+  getFull(id) { return this.req(this.d.transaction('full').objectStore('full').get(id)); },
+  del(ids) { const tx = this.d.transaction(['meta', 'full'], 'readwrite'); ids.forEach((id) => { tx.objectStore('meta').delete(id); tx.objectStore('full').delete(id); }); return this.done(tx); },
+  clear() { const tx = this.d.transaction(['meta', 'full'], 'readwrite'); tx.objectStore('meta').clear(); tx.objectStore('full').clear(); return this.done(tx); },
+  oldIds(cutoff) {
+    return new Promise((res, rej) => {
+      const out = [];
+      const r = this.d.transaction('meta').objectStore('meta').index('ts').openKeyCursor(IDBKeyRange.upperBound(cutoff));
+      r.onsuccess = () => { const c = r.result; if (c) { out.push(c.primaryKey); c.continue(); } else res(out); };
+      r.onerror = () => rej(r.error);
+    });
+  }
+};
+const Mem = {
+  m: new Map(), f: new Map(),
+  async add(meta, full) { this.m.set(meta.id, meta); this.f.set(full.id, full); },
+  async allMeta() { return [...this.m.values()]; },
+  async getMeta(id) { return this.m.get(id); },
+  async getFull(id) { return this.f.get(id); },
+  async del(ids) { ids.forEach((i) => { this.m.delete(i); this.f.delete(i); }); },
+  async clear() { this.m.clear(); this.f.clear(); },
+  async oldIds(c) { return [...this.m.values()].filter((x) => x.ts <= c).map((x) => x.id); }
+};
+let store = DB;
+
+const metaCache = new Map();
+const thumbUrls = new Map();
+function thumbUrl(m) {
+  let u = thumbUrls.get(m.id);
+  if (!u) { u = URL.createObjectURL(new Blob([m.thumb], { type: 'image/jpeg' })); thumbUrls.set(m.id, u); }
+  return u;
+}
+function forget(id) {
+  metaCache.delete(id);
+  const u = thumbUrls.get(id);
+  if (u) { URL.revokeObjectURL(u); thumbUrls.delete(id); }
+}
+async function purge() {
+  try {
+    const ids = await store.oldIds(Date.now() - KEEP_DAYS * DAY);
+    if (ids.length) {
+      await store.del(ids);
+      ids.forEach(forget);
+      S.session = S.session.filter((id) => !ids.includes(id));
+      save();
+    }
+    return ids.length;
+  } catch (e) { return 0; }
+}
+async function deletePhotos(ids) {
+  await store.del(ids);
+  ids.forEach(forget);
+  S.session = S.session.filter((id) => !ids.includes(id));
+  save();
+  renderSession();
+}
+
+/* ---------------- helpers ---------------- */
+function todayStr(d = new Date()) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+function fmtStamp(ts) { const d = new Date(ts); return `${todayStr(d)}  ${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+function fmtFull(ts) { const d = new Date(ts); return `${todayStr(d)} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`; }
+function fmtDay(ds) {
+  const p = (ds || '').split('-').map(Number);
+  if (p.length !== 3 || !p[0]) return 'earlier';
+  return new Date(p[0], p[1] - 1, p[2]).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+const unitClean = (u = S.unit) => String(u || '').trim().replace(/^#+\s*/, '');
+const posClean = (p = S.position) => String(p || '').trim();
+function initials(name) {
+  const w = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (!w.length) return '?';
+  return ((w[0][0] || '') + (w.length > 1 ? w[w.length - 1][0] : (w[0][1] || ''))).toUpperCase();
+}
+function plural(n, one, many) { return `${n} ${n === 1 ? one : (many || one + 's')}`; }
+function blobBuf(b) {
+  if (b.arrayBuffer) return b.arrayBuffer();
+  return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => rej(fr.error); fr.readAsArrayBuffer(b); });
+}
+function canvasBlob(c, q) { return new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('Could not make image'))), 'image/jpeg', q)); }
+const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isStandalone = () => !!(navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches));
+
+let toastT;
+function toast(msg, act, fn) {
+  const t = $('#toast');
+  t.innerHTML = `<span>${esc(msg)}</span>${act ? `<button type="button">${esc(act)}</button>` : ''}`;
+  if (act) t.querySelector('button').onclick = () => { t.classList.remove('on'); if (fn) fn(); };
+  t.classList.add('on');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('on'), act ? 5000 : 2800);
+}
+
+function overlay(html, onDismiss) {
+  const el = document.createElement('div');
+  el.className = 'ov';
+  el.innerHTML = html;
+  document.body.appendChild(el);
+  document.documentElement.classList.add('locked');
+  let closed = false;
+  const api = {
+    el,
+    close() {
+      if (closed) return;
+      closed = true;
+      el.remove();
+      if (!document.querySelector('.ov,.viewer')) document.documentElement.classList.remove('locked');
+    }
+  };
+  el.addEventListener('click', (e) => {
+    if (e.target === el || e.target.closest('[data-close]')) { api.close(); if (onDismiss) onDismiss(); }
+  });
+  return api;
+}
+function confirmDlg(title, text, okText = 'Delete', danger = true) {
+  return new Promise((res) => {
+    const api = overlay(`<div class="dlg" role="alertdialog"><h3>${esc(title)}</h3>${text ? `<p>${esc(text)}</p>` : ''}
+      <div class="acts"><button class="tbtn" data-c="0">Cancel</button><button class="btn ${danger ? 'btn-danger' : 'btn-or'}" data-c="1">${esc(okText)}</button></div></div>`, () => res(false));
+    api.el.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-c]');
+      if (b) { api.close(); res(b.dataset.c === '1'); }
+    });
+  });
+}
+
+/* ---------------- photo shapes ---------------- */
+const SHAPES = [
+  { id: '4:3L', name: '4:3 Landscape', sub: 'Standard wide photo', w: 4, h: 3 },
+  { id: '3:4P', name: '3:4 Portrait', sub: 'Standard tall photo', w: 3, h: 4 },
+  { id: '16:9L', name: '16:9 Landscape', sub: 'Widescreen', w: 16, h: 9 },
+  { id: '9:16P', name: '9:16 Portrait', sub: 'Full-screen tall', w: 9, h: 16 },
+  { id: '3:2L', name: '3:2 Landscape', sub: 'Classic camera wide', w: 3, h: 2 },
+  { id: '2:3P', name: '2:3 Portrait', sub: 'Classic camera tall', w: 2, h: 3 },
+  { id: '1:1', name: '1:1 Square', sub: 'Same in any orientation', w: 1, h: 1 },
+  { id: '4:3M', name: '4:3 Match phone', sub: '4:3 or 3:4 depending on how you hold the phone', m: [4, 3] },
+  { id: '16:9M', name: '16:9 Match phone', sub: '16:9 or 9:16 depending on how you hold the phone', m: [16, 9] }
+];
+const shapeObj = () => SHAPES.find((x) => x.id === S.shape) || SHAPES[0];
+const isLandscape = () => window.innerWidth > window.innerHeight;
+function aspectPair(land) { const s = shapeObj(); if (s.m) return land ? s.m : [s.m[1], s.m[0]]; return [s.w, s.h]; }
+function aspect() { const [w, h] = aspectPair(isLandscape()); return w / h; }
+function aspectFor(iw, ih) { const [w, h] = aspectPair(iw >= ih); return w / h; }
+function arLabel() { const [w, h] = aspectPair(isLandscape()); return `${w}:${h}`; }
+function crop(vw, vh, ar) {
+  let sw = vw, sh = vw / ar;
+  if (sh > vh) { sh = vh; sw = vh * ar; }
+  return [(vw - sw) / 2, (vh - sh) / 2, sw, sh];
+}
+
+/* ---------------- stamping the label bar onto the photo ---------------- */
+const FONT = '"Helvetica Neue", Helvetica, Roboto, Arial, sans-serif';
+function drawBanner(g, y, W, bh, s, m) {
+  const white = m.banner === 'white';
+  g.fillStyle = white ? '#FAFAFA' : '#212121';
+  g.fillRect(0, y, W, bh);
+  g.fillStyle = '#FF5A00';
+  g.fillRect(0, y, W, Math.max(2, Math.round(s * 0.006)));
+  const padX = Math.round(s * 0.045), maxW = W - padX * 2;
+  const unitTxt = 'UNIT #' + m.unit;
+  const posTxt = m.position ? '  •  ' + m.position : '';
+  let f1 = s * 0.05;
+  g.font = `700 ${f1}px ${FONT}`;
+  let wU = g.measureText(unitTxt).width, wP = g.measureText(posTxt).width;
+  if (wU + wP > maxW) {
+    f1 *= maxW / (wU + wP);
+    g.font = `700 ${f1}px ${FONT}`;
+    wU = g.measureText(unitTxt).width;
+  }
+  g.textBaseline = 'alphabetic';
+  const b1 = y + bh * 0.5;
+  g.fillStyle = white ? '#C2410C' : '#FF6A1A';
+  g.fillText(unitTxt, padX, b1);
+  if (posTxt) { g.fillStyle = white ? '#111111' : '#FFFFFF'; g.fillText(posTxt, padX + wU, b1); }
+  g.font = `500 ${s * 0.03}px ${FONT}`;
+  g.fillStyle = white ? '#555555' : '#A8A8A8';
+  g.fillText(fmtStamp(m.ts), padX, y + bh * 0.82);
+}
+async function compose(src, sx, sy, sw, sh, m) {
+  const k = Math.min(1, MAX_EDGE / Math.max(sw, sh));
+  const W = Math.max(1, Math.round(sw * k)), H = Math.max(1, Math.round(sh * k));
+  const s = Math.sqrt(W * H), bh = Math.round(s * 0.14);
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H + bh;
+  const g = c.getContext('2d');
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(src, sx, sy, sw, sh, 0, 0, W, H);
+  drawBanner(g, H, W, bh, s, m);
+  const fullBlob = await canvasBlob(c, 0.88);
+  const tk = THUMB / Math.max(W, H + bh);
+  const t = document.createElement('canvas');
+  t.width = Math.max(1, Math.round(W * tk)); t.height = Math.max(1, Math.round((H + bh) * tk));
+  const tg = t.getContext('2d');
+  tg.imageSmoothingQuality = 'high';
+  tg.drawImage(c, 0, 0, t.width, t.height);
+  const thumbBlob = await canvasBlob(t, 0.78);
+  const out = { full: await blobBuf(fullBlob), thumb: await blobBuf(thumbBlob), w: W, h: H + bh };
+  c.width = c.height = 0; t.width = t.height = 0;
+  return out;
+}
+async function savePhoto(src, sx, sy, sw, sh) {
+  const meta = { id: uid(), unit: unitClean(), position: posClean(), ts: Date.now(), banner: S.banner };
+  const r = await compose(src, sx, sy, sw, sh, meta);
+  meta.w = r.w; meta.h = r.h; meta.thumb = r.thumb;
+  await store.add(meta, { id: meta.id, data: r.full });
+  metaCache.set(meta.id, meta);
+  S.session.push(meta.id);
+  addRecentUnit(meta.unit);
+  save();
+  renderSession(true);
+  renderRecents();
+  return meta;
+}
+function checkReady() {
+  if (!unitClean()) { toast('Enter the unit number first'); focusUnit(); return false; }
+  if (!posClean()) { toast('Pick a tire position first'); return false; }
+  return true;
+}
+function focusUnit() { const el = $(cur === 'camera' ? '#cam-unit' : '#home-unit'); if (el) el.focus(); }
+function addRecentUnit(u) {
+  if (!u) return;
+  S.recentUnits = [u, ...S.recentUnits.filter((x) => x.toLowerCase() !== u.toLowerCase())].slice(0, 12);
+}
+
+/* ---------------- camera ---------------- */
+const video = $('#video');
+let stream = null, track = null, torchOk = false, torchOn = false, camReq = 0;
+function setCamMsg(kind) {
+  const el = $('#cam-msg');
+  const retry = '<button class="btn btn-or" data-action="cam-retry">Try again</button>';
+  const html = {
+    '': '',
+    starting: '<b>Starting camera…</b>',
+    blocked: `<b>Camera access is blocked</b><span>Allow the camera for this site, then tap Try again. The shutter button will open your phone's camera in the meantime.</span>${retry}`,
+    nolive: "<b>No live camera here</b><span>Tap the shutter button to use your phone's camera instead.</span>",
+    failed: `<b>Couldn't start the camera</b><span>The shutter button will open your phone's camera instead.</span>${retry}`
+  }[kind] || '';
+  el.innerHTML = html;
+  el.classList.toggle('on', !!html);
+}
+async function startCamera() {
+  const my = ++camReq;
+  stopStream();
+  updateAspect();
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { setCamMsg('nolive'); return; }
+  setCamMsg('starting');
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode: { ideal: S.facing }, width: { ideal: 2560 }, height: { ideal: 1920 } }
+    });
+    if (my !== camReq || cur !== 'camera' || document.hidden) { s.getTracks().forEach((t) => t.stop()); return; }
+    stream = s;
+    track = s.getVideoTracks()[0];
+    video.srcObject = s;
+    video.muted = true;
+    try { await video.play(); } catch (e) {}
+    let caps = {};
+    try { caps = track.getCapabilities ? track.getCapabilities() : {}; } catch (e) {}
+    torchOk = !!caps.torch;
+    torchOn = false;
+    renderTorch();
+    $('#preview').classList.toggle('mirror', S.facing === 'user');
+    track.addEventListener('ended', () => { if (cur === 'camera' && !document.hidden && track && track.readyState === 'ended') startCamera(); });
+    setCamMsg('');
+  } catch (e) {
+    if (my !== camReq) return;
+    const n = e && e.name;
+    if (n === 'NotAllowedError' || n === 'SecurityError') setCamMsg('blocked');
+    else if (n === 'NotFoundError' || n === 'DevicesNotFoundError') setCamMsg('nolive');
+    else setCamMsg('failed');
+  }
+}
+function stopStream() {
+  if (stream) stream.getTracks().forEach((t) => t.stop());
+  stream = null; track = null; torchOn = false;
+  try { video.srcObject = null; } catch (e) {}
+}
+function stopCamera() { camReq++; stopStream(); }
+function renderTorch() {
+  const b = $('#btn-torch');
+  b.innerHTML = ic(torchOn ? 'flash' : 'flashoff');
+  b.classList.toggle('dim', !torchOk);
+  b.setAttribute('aria-label', torchOn ? 'Turn flash off' : 'Turn flash on');
+}
+async function toggleTorch() {
+  if (!track || !torchOk) { toast("The browser can't use the flash on this phone"); return; }
+  torchOn = !torchOn;
+  try { await track.applyConstraints({ advanced: [{ torch: torchOn }] }); } catch (e) { torchOn = false; toast("Couldn't turn on the flash"); }
+  renderTorch();
+}
+function flipCamera() {
+  S.facing = S.facing === 'user' ? 'environment' : 'user';
+  save();
+  startCamera();
+}
+function updateAspect() {
+  const p = $('#preview');
+  p.style.setProperty('--ar', aspect());
+  $('#ar-badge').textContent = arLabel();
+}
+async function shoot() {
+  if (!checkReady()) return;
+  if (!stream || video.readyState < 2 || !video.videoWidth) { $('#file-cam').click(); return; }
+  const fx = $('#flashfx');
+  fx.classList.remove('go'); void fx.offsetWidth; fx.classList.add('go');
+  if (navigator.vibrate) { try { navigator.vibrate(25); } catch (e) {} }
+  const [sx, sy, sw, sh] = crop(video.videoWidth, video.videoHeight, aspect());
+  try { await savePhoto(video, sx, sy, sw, sh); }
+  catch (e) { console.error(e); toast("Couldn't save that photo. Try again."); }
+}
+function loadImg(file) {
+  return new Promise((res, rej) => {
+    const u = URL.createObjectURL(file);
+    const im = new Image();
+    im.onload = () => res({ im, u });
+    im.onerror = () => { URL.revokeObjectURL(u); rej(new Error('Could not read image')); };
+    im.src = u;
+  });
+}
+async function addFiles(files) {
+  files = [...(files || [])];
+  if (!files.length) return;
+  if (!checkReady()) return;
+  let ok = 0;
+  if (files.length > 1) toast(`Adding ${files.length} photos…`);
+  for (const f of files) {
+    let u = null;
+    try {
+      const r = await loadImg(f); u = r.u;
+      const iw = r.im.naturalWidth, ih = r.im.naturalHeight;
+      await savePhoto(r.im, ...crop(iw, ih, aspectFor(iw, ih)));
+      ok++;
+    } catch (e) { console.error(e); }
+    finally { if (u) URL.revokeObjectURL(u); }
+  }
+  toast(ok ? `Added ${plural(ok, 'photo')}` : "Couldn't add that photo");
+}
+
+/* ---------------- sending ---------------- */
+function boss() { return S.contacts.find((c) => c.id === S.bossId) || null; }
+function shareText(ms) {
+  const combos = [...new Set(ms.map((m) => `Unit #${m.unit}${m.position ? ' • ' + m.position : ''}`))];
+  return combos.join(', ') + (ms.length > 1 ? ` (${ms.length} photos)` : '');
+}
+function fileName(m, i, n) {
+  const san = (x) => String(x || '').replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'x';
+  return `Unit-${san(m.unit)}_${san(m.position || 'tire')}${n > 1 ? '_' + (i + 1) : ''}.jpg`;
+}
+async function doShare(files, text) {
+  if (navigator.share && navigator.canShare) {
+    let data = S.includeText && text ? { files, text } : { files };
+    let can = false;
+    try { can = navigator.canShare(data); if (!can && data.text) { data = { files }; can = navigator.canShare(data); } } catch (e) { can = false; }
+    if (can) {
+      try { await navigator.share(data); return 'sent'; }
+      catch (e) {
+        if (e && e.name === 'AbortError') return 'cancel';
+        console.error(e);
+        toast(e && e.name === 'NotAllowedError' ? 'Tap Send again' : "Sharing didn't work. Try again.");
+        return 'error';
+      }
+    }
+  }
+  files.forEach((f, i) => setTimeout(() => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(f); a.download = f.name;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  }, i * 250));
+  toast("This browser can't share photos, so they were downloaded instead");
+  return 'downloaded';
+}
+async function openSend(ids, fromSession) {
+  ids = ids.filter((id) => metaCache.has(id));
+  if (!ids.length) { toast('Take a photo first'); return; }
+  const metas = ids.map((id) => metaCache.get(id));
+  const n = ids.length, b = boss();
+  const api = overlay(`<div class="dlg">
+    <h3>Send ${n === 1 ? 'this photo' : n + ' photos'}</h3>
+    <div class="sthumbs">${metas.slice(0, 6).map((m) => `<img src="${thumbUrl(m)}" alt="">`).join('')}${n > 6 ? `<span class="more">+${n - 6}</span>` : ''}</div>
+    <div class="sto">${b
+      ? `<span class="avatar">${esc(initials(b.name))}</span><div class="sto-t"><small>Boss for today</small><b>${esc(b.name)}</b>${b.phone ? `<span class="ph">${esc(b.phone)}</span>` : ''}</div>`
+      : `<span class="avatar grey">?</span><div class="sto-t"><b>No boss picked</b><small>You can still pick anyone in the next step.</small></div>`}
+      <button class="tbtn" data-chg>${b ? 'Change' : 'Pick'}</button></div>
+    <p class="hint">Your phone's share menu opens next. ${b ? `Tap <b>${esc(b.name)}</b> if they're in the top row, or tap <b>Messages</b> and enter their name.` : 'Tap the person, or tap <b>Messages</b> and enter their name.'}</p>
+    <div class="acts"><button class="tbtn" data-close>Cancel</button><button class="btn btn-or" data-go-share disabled>${ic('send')}<span>Getting ready…</span></button></div>
+  </div>`);
+  api.el.querySelector('[data-chg]').addEventListener('click', () => {
+    api.close();
+    openContacts(() => openSend(ids, fromSession));
+  });
+  const btn = api.el.querySelector('[data-go-share]');
+  let files = null;
+  try {
+    const fulls = await Promise.all(ids.map((id) => store.getFull(id)));
+    files = fulls.map((f, k) => (f ? new File([f.data], fileName(metas[k], k, n), { type: 'image/jpeg', lastModified: metas[k].ts }) : null)).filter(Boolean);
+  } catch (e) { files = null; }
+  if (!files || !files.length) { btn.querySelector('span').textContent = "Couldn't load photos"; return; }
+  btn.disabled = false;
+  btn.querySelector('span').textContent = 'Send';
+  btn.addEventListener('click', async () => {
+    const r = await doShare(files, shareText(metas));
+    if (r === 'sent' || r === 'downloaded') {
+      api.close();
+      if (b) { b.used = Date.now(); save(); }
+      if (r === 'sent') { if (fromSession) showNextTire(); else toast('Sent'); }
+    }
+  });
+}
+function showNextTire() {
+  const api = overlay(`<div class="dlg"><h3>Sent!</h3><p>These photos stay in History for 7 days.</p>
+    <div class="stack">
+      <button class="btn btn-or wide" data-nt="next">Next tire, same unit</button>
+      <button class="btn btn-ghost wide" data-nt="new">New unit</button>
+      <button class="tbtn wide" data-nt="keep">Keep these photos here</button>
+    </div></div>`);
+  api.el.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-nt]');
+    if (!b) return;
+    api.close();
+    if (b.dataset.nt === 'keep') return;
+    S.session = [];
+    S.position = '';
+    if (b.dataset.nt === 'new') S.unit = '';
+    save();
+    renderAll();
+    if (b.dataset.nt === 'new' && cur === 'camera') back();
+  });
+}
+
+/* ---------------- contacts ---------------- */
+function pickBoss(id) {
+  const c = S.contacts.find((x) => x.id === id);
+  if (!c) return;
+  S.bossId = id; S.bossDate = todayStr(); c.used = Date.now();
+  save(); renderBoss();
+}
+function addContact(name, phone) {
+  const c = { id: uid(), name: name.trim(), phone: (phone || '').trim(), used: Date.now() };
+  S.contacts.push(c);
+  pickBoss(c.id);
+}
+function openContacts(onDone) {
+  const api = overlay('<div class="dlg contacts"></div>', () => { if (onDone) onDone(); });
+  const box = api.el.querySelector('.dlg');
+  const canPick = !!(navigator.contacts && typeof navigator.contacts.select === 'function');
+  const finish = () => { api.close(); if (onDone) onDone(); };
+  function draw() {
+    const list = S.contacts.slice().sort((a, b) => (b.used || 0) - (a.used || 0));
+    box.innerHTML = `<h3>Who's the boss today?</h3>
+      ${list.length ? list.map((c) => `<div class="crow ${c.id === S.bossId ? 'sel' : ''}">
+          <button class="cpick" data-cpick="${esc(c.id)}"><span class="avatar sm">${esc(initials(c.name))}</span><span class="cinfo"><b>${esc(c.name)}</b>${c.phone ? `<small>${esc(c.phone)}</small>` : ''}</span><span class="rd"></span></button>
+          <button class="icon-btn cdel" data-cdel="${esc(c.id)}" aria-label="Remove ${esc(c.name)}">${ic('trash', 'sm')}</button></div>`).join('')
+        : '<p>No one saved yet. Add your boss below and they\'ll be one tap away next time.</p>'}
+      ${canPick ? `<button class="btn btn-ghost wide" data-cphone style="margin-top:6px">${ic('contact')}Pick from phone contacts</button>` : ''}
+      <form class="cadd" autocomplete="off"><div class="grp">Add someone</div>
+        <input class="field sm" name="cname" placeholder="Name" autocapitalize="words" required>
+        <input class="field sm" name="cphone" type="tel" inputmode="tel" placeholder="Phone number (optional)">
+        <button class="btn btn-or wide" type="submit">${ic('plus')}Add &amp; make boss for today</button>
+      </form>
+      <div class="acts"><button class="tbtn" data-close>Done</button></div>`;
+  }
+  draw();
+  box.addEventListener('click', async (e) => {
+    const p = e.target.closest('[data-cpick]'), d = e.target.closest('[data-cdel]'), ph = e.target.closest('[data-cphone]');
+    if (p) { pickBoss(p.dataset.cpick); finish(); }
+    else if (d) {
+      const id = d.dataset.cdel;
+      S.contacts = S.contacts.filter((c) => c.id !== id);
+      if (S.bossId === id) S.bossId = null;
+      save(); renderBoss(); draw();
+    } else if (ph) {
+      try {
+        const r = await navigator.contacts.select(['name', 'tel'], { multiple: false });
+        if (r && r[0]) {
+          const nm = (r[0].name && r[0].name[0]) || '', tel = (r[0].tel && r[0].tel[0]) || '';
+          if (nm || tel) { addContact(nm || tel, tel); finish(); }
+        }
+      } catch (err) {}
+    }
+  });
+  box.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = e.target;
+    const nm = f.elements.namedItem('cname').value.trim();
+    const tel = f.elements.namedItem('cphone').value.trim();
+    if (!nm) return;
+    addContact(nm, tel);
+    finish();
+  });
+}
+
+/* ---------------- photo viewer ---------------- */
+function openViewer(ids, start) {
+  ids = ids.filter((id) => metaCache.has(id));
+  if (!ids.length) return;
+  let i = Math.max(0, Math.min(start, ids.length - 1)), url = null, token = 0, zoomed = false, swiped = false;
+  const el = document.createElement('div');
+  el.className = 'viewer';
+  el.setAttribute('role', 'dialog');
+  el.innerHTML = `<div class="v-top"><div class="meta"></div><button class="icon-btn" data-v="close" aria-label="Close">${ic('close', 'lg')}</button></div>
+    <div class="v-stage"><img alt=""><button class="v-arrow l" data-v="prev" aria-label="Previous photo">${ic('chevl')}</button><button class="v-arrow r" data-v="next" aria-label="Next photo">${ic('chevr')}</button></div>
+    <p class="v-hint">Tap the photo to zoom in</p>
+    <div class="v-bottom"><button class="v-send" data-v="send">${ic('send', 'lg')}Send</button><button class="v-del" data-v="del">${ic('trash', 'lg')}Delete</button><button class="v-close" data-v="close">${ic('close', 'lg')}Close</button></div>`;
+  document.body.appendChild(el);
+  document.documentElement.classList.add('locked');
+  const img = el.querySelector('img'), stage = el.querySelector('.v-stage');
+  function setZoom(z) {
+    zoomed = z;
+    stage.classList.toggle('zoom', z);
+    el.querySelector('.v-hint').textContent = z ? 'Tap again to fit' : 'Tap the photo to zoom in';
+    if (z) requestAnimationFrame(() => {
+      stage.scrollLeft = (stage.scrollWidth - stage.clientWidth) / 2;
+      stage.scrollTop = Math.max(0, (stage.scrollHeight - stage.clientHeight) / 2);
+    });
+  }
+  async function show() {
+    const id = ids[i], m = metaCache.get(id), my = ++token;
+    el.querySelector('.meta').innerHTML = `<b>Photo ${i + 1} of ${ids.length}</b><div>Captured: ${fmtFull(m.ts)}</div><div>Unit #${esc(m.unit)}${m.position ? ' • ' + esc(m.position) : ''}</div>`;
+    setZoom(false);
+    img.src = thumbUrl(m);
+    el.querySelector('[data-v=prev]').hidden = i === 0;
+    el.querySelector('[data-v=next]').hidden = i >= ids.length - 1;
+    try {
+      const f = await store.getFull(id);
+      if (my !== token || !f) return;
+      const u = URL.createObjectURL(new Blob([f.data], { type: 'image/jpeg' }));
+      if (url) URL.revokeObjectURL(url);
+      url = u; img.src = u;
+    } catch (e) {}
+  }
+  function close() {
+    token++;
+    el.remove();
+    if (url) URL.revokeObjectURL(url);
+    document.removeEventListener('keydown', onKey);
+    if (!document.querySelector('.ov,.viewer')) document.documentElement.classList.remove('locked');
+  }
+  const nav = (dir) => { const j = i + dir; if (j >= 0 && j < ids.length) { i = j; show(); } };
+  function onKey(e) {
+    if (document.querySelector('.ov')) return;
+    if (e.key === 'Escape') close();
+    else if (e.key === 'ArrowLeft') nav(-1);
+    else if (e.key === 'ArrowRight') nav(1);
+  }
+  document.addEventListener('keydown', onKey);
+  el.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-v]');
+    if (!b) {
+      if (e.target === img) { if (swiped) { swiped = false; return; } setZoom(!zoomed); }
+      return;
+    }
+    const v = b.dataset.v;
+    if (v === 'close') close();
+    else if (v === 'prev') nav(-1);
+    else if (v === 'next') nav(1);
+    else if (v === 'send') openSend([ids[i]], false);
+    else if (v === 'del') {
+      const id = ids[i];
+      if (!(await confirmDlg('Delete this photo?', 'It will be removed from this app for good.'))) return;
+      try { await deletePhotos([id]); } catch (err) { toast("Couldn't delete that photo"); return; }
+      if (cur === 'history') renderHistory();
+      ids.splice(i, 1);
+      toast('Photo deleted');
+      if (!ids.length) close();
+      else { i = Math.min(i, ids.length - 1); show(); }
+    }
+  });
+  let tx = 0, ty = 0;
+  stage.addEventListener('touchstart', (e) => { if (e.touches.length === 1) { tx = e.touches[0].clientX; ty = e.touches[0].clientY; } }, { passive: true });
+  stage.addEventListener('touchend', (e) => {
+    if (zoomed || !e.changedTouches.length) return;
+    const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) { swiped = true; setTimeout(() => { swiped = false; }, 400); nav(dx < 0 ? 1 : -1); }
+  }, { passive: true });
+  show();
+}
+
+/* ---------------- rendering ---------------- */
+function renderTip() {
+  let h = '';
+  if (store === Mem) h += `<div class="tip warn"><span class="ico or">${ic('warn')}</span><div>This browser can't store photos, so they'll be gone when the app closes. Send them before you leave.</div></div>`;
+  if (isIOS && !isStandalone() && !S.tipHidden) {
+    h += `<div class="tip"><span class="ico or">${ic('phone')}</span><div>Put it on your home screen: tap <b>Share</b> ${ic('shareios', 'inl')} then <b>Add to Home Screen</b>.</div><button class="icon-btn" data-action="hide-tip" aria-label="Hide tip">${ic('close', 'sm')}</button></div>`;
+  }
+  $('#tip').innerHTML = h;
+}
+function renderBoss() {
+  const b = boss(), isToday = b && S.bossDate === todayStr();
+  let h = `<span class="ico boss-ic">${ic('person')}</span><div class="who"><div class="lbl">Target Recipient</div>`;
+  if (b) {
+    h += `<div class="name">Sending to: ${esc(b.name)}${isToday ? ' (Boss for today)' : ''}</div>${b.phone ? `<div class="ph">${esc(b.phone)}</div>` : ''}`;
+    if (!isToday) h += `<div class="stale">Picked ${esc(fmtDay(S.bossDate))}. Still the boss?</div>`;
+  } else {
+    h += `<div class="name">No boss picked yet</div><div class="stale">Tap Contacts to add today's boss.</div>`;
+  }
+  h += `</div><button class="btn btn-or" data-action="contacts">${ic('contact')}Contacts</button>`;
+  $('#boss-card').innerHTML = h;
+}
+function renderInputs() {
+  [['#home-unit', S.unit], ['#cam-unit', S.unit], ['#home-position', S.position], ['#cam-position', S.position]].forEach(([sel, v]) => {
+    const el = $(sel);
+    if (el && document.activeElement !== el && el.value !== v) el.value = v;
+  });
+}
+function applyKeyboard() {
+  ['#home-unit', '#cam-unit'].forEach((s) => {
+    const el = $(s);
+    if (S.unitPad) { el.setAttribute('inputmode', 'numeric'); el.setAttribute('pattern', '[0-9]*'); }
+    else { el.setAttribute('inputmode', 'text'); el.removeAttribute('pattern'); }
+  });
+}
+function renderRecents() {
+  const el = $('#recent');
+  if (!S.recentUnits.length) { el.innerHTML = ''; el.hidden = true; return; }
+  el.hidden = false;
+  el.innerHTML = `<span class="lbl">${ic('history')}Recent Units:</span><div class="chips">${S.recentUnits.map((u) =>
+    `<span class="chip"><button class="cu" data-unit="${esc(u)}">#${esc(u)}</button><button class="cx" data-unit-del="${esc(u)}" aria-label="Remove ${esc(u)}">${ic('close')}</button></span>`).join('')}</div>`;
+}
+function renderPositions() {
+  const p = posClean().toUpperCase();
+  ['#home-pos', '#cam-pos'].forEach((sel) => {
+    $(sel).innerHTML = S.positions.map((x) => `<button class="pos ${x.toUpperCase() === p ? 'sel' : ''}" data-pos="${esc(x)}">${esc(x)}</button>`).join('');
+  });
+}
+function renderBannerPreview() {
+  const el = $('#bprev');
+  el.className = 'bprev' + (S.banner === 'white' ? ' white' : '');
+  const u = unitClean(), p = posClean();
+  el.innerHTML = `<div class="l1"><span class="u">UNIT #${esc(u || '—')}</span>${p ? `<span class="p">&nbsp; • ${esc(p)}</span>` : ''}</div><div class="l2">${fmtStamp(Date.now()).replace('  ', '&nbsp; ')}</div>`;
+  $$('[data-banner]').forEach((b) => b.classList.toggle('sel', b.dataset.banner === S.banner));
+}
+function stripHTML(emptyHtml, plain) {
+  const ms = S.session.map((id) => metaCache.get(id)).filter(Boolean);
+  if (!ms.length) return `<div class="empty${plain ? ' plain' : ''}">${emptyHtml}</div>`;
+  return `<div class="strip">${ms.map((m, i) => `<div class="th"><button class="th-img" data-sview="${i}" aria-label="View photo ${i + 1}"><img src="${thumbUrl(m)}" alt=""></button><span class="n">#${i + 1}</span><button class="x" data-sdel="${esc(m.id)}" aria-label="Delete photo ${i + 1}">${ic('close')}</button></div>`).join('')}</div>`;
+}
+function renderSession(scrollEnd) {
+  const n = S.session.length;
+  const hc = $('#home-count'); hc.textContent = n; hc.classList.toggle('has', n > 0);
+  $('#cam-count').textContent = `${n} Photo${n === 1 ? '' : 's'} Captured`;
+  const pill = $('#cam-pill'); pill.textContent = `${n} Captured`; pill.classList.toggle('has', n > 0);
+  const badge = $('#send-badge'); badge.textContent = n; badge.classList.toggle('on', n > 0);
+  $('#cam-send').classList.toggle('dim', n === 0);
+  const hs = $('#home-send');
+  hs.hidden = n === 0;
+  hs.innerHTML = `${ic('send')}Send ${n === 1 ? 'photo' : n + ' photos'}`;
+  $('#home-strip').innerHTML = stripHTML("No photos in this session yet.<br>Tap 'TAKE INSPECTION PHOTOS' or 'Add Photos'.");
+  $('#cam-strip').innerHTML = stripHTML('No photos captured in this session yet', true);
+  if (scrollEnd) $$('.strip').forEach((s) => { s.scrollLeft = s.scrollWidth; });
+}
+function renderAll() {
+  renderTip(); renderBoss(); renderInputs(); renderRecents(); renderPositions(); renderSession(); renderBannerPreview();
+}
+
+/* history */
+let HG = [];
+async function renderHistory() {
+  const list = $('#hist-list');
+  await purge();
+  let all = [];
+  try { all = await store.allMeta(); } catch (e) {}
+  all.forEach((m) => metaCache.set(m.id, m));
+  HG = [];
+  if (!all.length) { list.innerHTML = `<div class="empty">No photos from the last 7 days.</div>`; return; }
+  const units = new Map();
+  all.sort((a, b) => b.ts - a.ts).forEach((m) => {
+    const uk = String(m.unit || '').toUpperCase();
+    if (!units.has(uk)) units.set(uk, { unit: m.unit, groups: new Map(), n: 0 });
+    const U = units.get(uk); U.n++;
+    const pk = String(m.position || '').toUpperCase();
+    if (!U.groups.has(pk)) U.groups.set(pk, { unit: m.unit, position: m.position, latest: m.ts, ids: [] });
+    U.groups.get(pk).ids.push(m.id);
+  });
+  list.innerHTML = [...units.values()].map((U) => `<div class="hcard">
+      <div class="hhead">${ic('car')}<span class="nm">Unit #${esc(U.unit)}</span><span class="pill">${plural(U.n, 'Photo')}</span></div>
+      ${[...U.groups.values()].map((G) => {
+        G.ids.reverse();
+        const gi = HG.push(G) - 1;
+        return `<div class="hgroup">
+          <div class="hg-top">${ic('tirepos', 'sm')}<span class="ps">POSITION: ${esc(G.position || '—')}</span><span class="tm">${esc(fmtStamp(G.latest).replace('  ', ' '))}</span></div>
+          <div class="hthumbs">${G.ids.map((id, k) => `<button data-hview="${gi}:${k}" aria-label="View photo ${k + 1}"><img src="${thumbUrl(metaCache.get(id))}" alt="" loading="lazy"></button>`).join('')}</div>
+          <div class="hbtns"><button class="btn btn-ghost" data-hdel="${gi}">${ic('trash')}Delete</button><button class="btn btn-ghost" data-hopen="${gi}">${ic('pencil')}Open</button><button class="btn btn-or" data-hshare="${gi}">${ic('share')}Share</button></div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+/* settings */
+function swatch(s) {
+  const box = (w, h, mw, mh) => { const k = Math.min(mw / w, mh / h); return `<i style="width:${Math.round(w * k)}px;height:${Math.round(h * k)}px"></i>`; };
+  if (s.m) return box(s.m[0], s.m[1], 30, 30) + box(s.m[1], s.m[0], 30, 30);
+  return box(s.w, s.h, 56, 50);
+}
+function renderSettings() {
+  const opt = (s) => `<button class="opt ${S.shape === s.id ? 'sel' : ''}" data-shape="${s.id}"><span class="sw">${swatch(s)}</span><span class="ot"><b>${s.name}</b><small>${s.sub}</small></span><span class="rd"></span></button>`;
+  $('#set-body').innerHTML = `
+    <h3>Photo shape &amp; orientation</h3>
+    <p class="note">Photos are cropped to this shape when taken or added. The camera preview shows exactly what will be saved. Existing photos aren't changed.</p>
+    <div class="grp">Always the same shape</div>
+    ${SHAPES.filter((s) => !s.m).map(opt).join('')}
+    <div class="grp">${ic('rotate')}Match how the phone is held</div>
+    <p class="note sm">Rotation lock needs to be off for these.</p>
+    ${SHAPES.filter((s) => s.m).map(opt).join('')}
+    <h3>Tire position buttons</h3>
+    <p class="note">Separate them with commas. You can still type any position in the box.</p>
+    <input class="field" id="set-pos" value="${esc(S.positions.join(', '))}" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+    <div class="row-btns"><button class="btn btn-or" data-set="savepos">Save buttons</button><button class="tbtn" data-set="resetpos">Reset to P1–P6</button></div>
+    <h3>Unit number keyboard</h3>
+    <div class="segs"><button class="seg ${!S.unitPad ? 'sel' : ''}" data-set="kb-text">Full keyboard</button><button class="seg ${S.unitPad ? 'sel' : ''}" data-set="kb-num">Number pad</button></div>
+    <h3>Sending</h3>
+    <button class="toggle-row" data-set="text"><span class="tt"><b>Add unit &amp; position as text</b><small>Sends “Unit #452 • P4” along with the photos.</small></span><span class="sw-t ${S.includeText ? 'on' : ''}"></span></button>
+    <h3>Stored photos</h3>
+    <p class="note">Photos stay inside this app for 7 days, then delete themselves. Photos you take here never go into your Photos app.</p>
+    <button class="btn btn-danger" data-set="wipe">${ic('trash')}Delete all photos now</button>
+    <p class="ver">Scrap Tire Inspection · web version ${VERSION}</p>`;
+}
+async function wipeAll() {
+  if (!(await confirmDlg('Delete all photos?', 'This removes every photo in History and in the current session.', 'Delete all'))) return;
+  try { await store.clear(); } catch (e) { toast("Couldn't delete the photos"); return; }
+  [...metaCache.keys()].forEach(forget);
+  S.session = []; save();
+  renderSession();
+  if (cur === 'history') renderHistory();
+  toast('All photos deleted');
+}
+function settingsAction(a) {
+  if (a === 'savepos') {
+    const parts = $('#set-pos').value.split(',').map((x) => x.trim()).filter(Boolean);
+    const seen = new Set(), out = [];
+    parts.forEach((p) => { const k = p.toUpperCase(); if (!seen.has(k)) { seen.add(k); out.push(p); } });
+    if (!out.length) { toast('Add at least one position'); return; }
+    S.positions = out.slice(0, 16); save(); renderPositions(); renderSettings(); toast('Position buttons saved');
+  } else if (a === 'resetpos') {
+    S.positions = DEF.positions.slice(); save(); renderPositions(); renderSettings(); toast('Reset to P1–P6');
+  } else if (a === 'kb-text' || a === 'kb-num') {
+    S.unitPad = a === 'kb-num'; save(); applyKeyboard(); renderSettings();
+  } else if (a === 'text') {
+    S.includeText = !S.includeText; save(); renderSettings();
+  } else if (a === 'wipe') wipeAll();
+}
+
+/* ---------------- screens ---------------- */
+const ROUTES = ['home', 'camera', 'history', 'settings'];
+let cur = '';
+let clockT = null;
+function go(r) { history.pushState({ inApp: true }, '', '#/' + r); route(); }
+function back() {
+  if (history.state && history.state.inApp) history.back();
+  else { history.replaceState(null, '', '#/'); route(); }
+}
+function route() {
+  let r = (location.hash.match(/^#\/(\w+)/) || [])[1] || 'home';
+  if (!ROUTES.includes(r)) r = 'home';
+  if (r === cur) return;
+  const prev = cur;
+  cur = r;
+  $$('.screen').forEach((s) => s.classList.toggle('on', s.id === 'scr-' + r));
+  document.body.classList.toggle('cam-on', r === 'camera');
+  window.scrollTo(0, 0);
+  if (prev === 'camera') { stopCamera(); clearInterval(clockT); }
+  if (r === 'home') renderAll();
+  if (r === 'camera') {
+    renderAll(); renderTorch(); startCamera();
+    clockT = setInterval(renderBannerPreview, 20000);
+  }
+  if (r === 'history') { $('#hist-list').innerHTML = '<p class="muted center">Loading…</p>'; renderHistory(); }
+  if (r === 'settings') renderSettings();
+}
+
+/* ---------------- events ---------------- */
+function setPosition(p) {
+  S.position = p; save();
+  renderInputs(); renderPositions(); renderBannerPreview();
+}
+function bindInputs() {
+  const units = ['#home-unit', '#cam-unit'], poss = ['#home-position', '#cam-position'];
+  units.forEach((sel) => {
+    const el = $(sel);
+    el.addEventListener('input', () => { S.unit = el.value; save(); renderInputs(); renderBannerPreview(); });
+  });
+  poss.forEach((sel) => {
+    const el = $(sel);
+    el.addEventListener('input', () => { S.position = el.value; save(); renderInputs(); renderPositions(); renderBannerPreview(); });
+  });
+  [...units, ...poss].forEach((sel) => $(sel).addEventListener('keydown', (e) => { if (e.key === 'Enter') e.target.blur(); }));
+  $('#file-add').addEventListener('change', (e) => { const f = [...e.target.files]; e.target.value = ''; addFiles(f); });
+  $('#file-cam').addEventListener('change', (e) => { const f = [...e.target.files]; e.target.value = ''; addFiles(f); });
+}
+document.addEventListener('click', async (e) => {
+  const t = e.target.closest('button');
+  if (!t || t.closest('.ov') || t.closest('.viewer') || t.closest('.toast')) return;
+  const d = t.dataset;
+  if (d.go) return go(d.go);
+  if ('back' in d) return back();
+  if (d.pos !== undefined) return setPosition(d.pos);
+  if (d.unit !== undefined) { S.unit = d.unit; save(); renderInputs(); renderBannerPreview(); return; }
+  if (d.unitDel !== undefined) { S.recentUnits = S.recentUnits.filter((x) => x !== d.unitDel); save(); renderRecents(); return; }
+  if (d.sview !== undefined) return openViewer(S.session.slice(), +d.sview);
+  if (d.sdel) return deleteSessionPhoto(d.sdel);
+  if (d.banner) { S.banner = d.banner; save(); renderBannerPreview(); return; }
+  if (d.shape) { S.shape = d.shape; save(); renderSettings(); updateAspect(); return; }
+  if (d.set) return settingsAction(d.set);
+  if (d.hview) { const [g, k] = d.hview.split(':').map(Number); if (HG[g]) openViewer(HG[g].ids.slice(), k); return; }
+  if (d.hshare) { const G = HG[+d.hshare]; if (G) openSend(G.ids.slice(), false); return; }
+  if (d.hopen) {
+    const G = HG[+d.hopen]; if (!G) return;
+    S.unit = G.unit; S.position = G.position || ''; S.session = G.ids.slice();
+    addRecentUnit(G.unit); save();
+    go('camera');
+    toast(`Opened ${plural(G.ids.length, 'photo')} for Unit #${G.unit}`);
+    return;
+  }
+  if (d.hdel) {
+    const G = HG[+d.hdel]; if (!G) return;
+    if (!(await confirmDlg(`Delete ${plural(G.ids.length, 'photo')}?`, `Unit #${G.unit}${G.position ? ' • ' + G.position : ''} will be removed from History.`))) return;
+    try { await deletePhotos(G.ids); } catch (err) { toast("Couldn't delete those photos"); return; }
+    renderHistory(); toast('Deleted');
+    return;
+  }
+  switch (d.action) {
+    case 'take': go('camera'); break;
+    case 'contacts': openContacts(); break;
+    case 'add-photos': if (checkReady()) $('#file-add').click(); break;
+    case 'shutter': shoot(); break;
+    case 'send': openSend(S.session.slice(), true); break;
+    case 'torch': toggleTorch(); break;
+    case 'flip': flipCamera(); break;
+    case 'cam-retry': startCamera(); break;
+    case 'hide-tip': S.tipHidden = true; save(); renderTip(); break;
+    case 'clear-all': wipeAll(); break;
+  }
+});
+async function deleteSessionPhoto(id) {
+  const m = metaCache.get(id);
+  let full = null;
+  try { full = await store.getFull(id); } catch (e) {}
+  const idx = S.session.indexOf(id);
+  try { await deletePhotos([id]); } catch (e) { toast("Couldn't delete that photo"); return; }
+  toast('Photo deleted', 'Undo', async () => {
+    if (!m || !full) return;
+    try {
+      await store.add(m, full);
+      metaCache.set(id, m);
+      S.session.splice(Math.min(Math.max(idx, 0), S.session.length), 0, id);
+      save(); renderSession();
+    } catch (e) {}
+  });
+}
+window.addEventListener('popstate', route);
+window.addEventListener('hashchange', route);
+window.addEventListener('resize', () => { if (cur === 'camera') updateAspect(); });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (cur === 'camera') stopCamera(); return; }
+  purge().then((n) => { if (n) { renderSession(); if (cur === 'history') renderHistory(); } });
+  renderBoss();
+  if (cur === 'camera') startCamera();
+});
+
+/* ---------------- start ---------------- */
+async function init() {
+  paintIcons();
+  try { await DB.open(); store = DB; } catch (e) { store = Mem; }
+  await purge();
+  const metas = await Promise.all(S.session.map((id) => store.getMeta(id).catch(() => null)));
+  S.session = S.session.filter((id, k) => { if (metas[k]) { metaCache.set(id, metas[k]); return true; } return false; });
+  save();
+  applyKeyboard();
+  bindInputs();
+  route();
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+}
+init();
+})();
+</script>
+</body>
+</html>

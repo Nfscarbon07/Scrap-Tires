@@ -1,0 +1,15 @@
+{
+  "name": "Scrap Tire Inspection",
+  "short_name": "Tire Photos",
+  "description": "Take scrap tire photos labeled with unit number and tire position, and send them to today's boss.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#121212",
+  "theme_color": "#121212",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
