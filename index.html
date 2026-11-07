@@ -118,10 +118,10 @@ input{font:inherit;color:inherit}
 .icon-btn.dim{opacity:.5}
 .strip{display:flex;gap:12px;overflow-x:auto;padding:4px 2px;margin-top:14px;scrollbar-width:none}
 .strip::-webkit-scrollbar{display:none}
-.th{position:relative;flex:none;width:104px;height:104px;border-radius:12px;overflow:hidden;border:2.5px solid var(--or);background:#222}
+.th{position:relative;flex:none;width:118px;height:118px;border-radius:12px;overflow:hidden;border:2.5px solid var(--or);background:#222}
 .th-img{display:block;width:100%;height:100%}
 .th img{width:100%;height:100%;object-fit:cover;display:block}
-.th .n{position:absolute;left:5px;bottom:5px;background:rgba(0,0,0,.8);color:var(--or-t);font-weight:800;font-size:13px;padding:3px 7px;border-radius:6px;pointer-events:none}
+.th .n{position:absolute;left:4px;bottom:4px;max-width:calc(100% - 8px);background:rgba(0,0,0,.82);color:var(--or-t);font-weight:800;font-size:12px;padding:3px 6px;border-radius:6px;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .th .x{position:absolute;right:3px;top:3px;width:32px;height:32px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.5)}
 .th .x .ic{width:18px;height:18px}
 
@@ -200,7 +200,7 @@ input{font:inherit;color:inherit}
 @media (min-width:700px){
   .screen{max-width:760px}
   .cam-body{max-width:760px}
-  .th{width:120px;height:120px}
+  .th{width:128px;height:128px}
 }
 /* sideways phones and sideways tablets: camera on the left, controls on the right */
 @media (orientation:landscape) and (max-height:540px), (orientation:landscape) and (min-width:900px){
@@ -1177,9 +1177,11 @@ function detailsText(ms, det = {}) {
     const a = byUnit.get(m.unit);
     if (m.position && !a.includes(m.position)) a.push(m.position);
   });
-  const head = [...byUnit.entries()].map(([u, ps]) => [u, ps.join(', ')].filter(Boolean).join(' - ')).join('; ');
-  const hrs = String(det.hours || '').trim().replace(/\s*h(ou)?rs?\.?$/i, '');
-  return [head, det.serial, hrs ? `${hrs} hrs` : '', det.damage, det.reason]
+  // e.g. "Unit 152 - Position P4 - 7,893 hrs - Repair - Serial CA59-3214 - Shoulder Separation"
+  const head = [...byUnit.entries()].map(([u, ps]) => [`Unit ${u}`, ps.length ? `Position ${ps.join(', ')}` : ''].filter(Boolean).join(' - ')).join('; ');
+  const hrs = fmtHours(det.hours);
+  const serial = String(det.serial || '').trim();
+  return [head, hrs ? `${hrs} hrs` : '', det.reason, serial ? `Serial ${serial}` : '', det.damage]
     .map((x) => String(x || '').trim()).filter(Boolean).join(' - ');
 }
 function fileName(m, i, n) {
@@ -1263,7 +1265,10 @@ function actOnIds(ids, mode, fromSession) {
   ids = ids.filter((id) => metaCache.has(id));
   if (!ids.length) { toast('Take a photo first'); return; }
   // checklist order (1 → 5, extras last), then the order they were taken
-  ids.sort((a, b) => { const A = metaCache.get(a), B = metaCache.get(b); return ((A.step || 99) - (B.step || 99)) || (A.ts - B.ts); });
+  // send/save order: Painted Tire first, then 1-4, then any not picked; same type in the order taken
+  const RANK = { 5: 0, 1: 1, 2: 2, 3: 3, 4: 4 };
+  const rank = (m) => (m.step in RANK ? RANK[m.step] : 99);
+  ids.sort((a, b) => { const A = metaCache.get(a), B = metaCache.get(b); return (rank(A) - rank(B)) || (A.ts - B.ts); });
   const metas = ids.map((id) => metaCache.get(id)), n = ids.length;
   if (mode === 'send') { sendDialog(ids, metas, fromSession); return; }
   if (ids.every((id) => blobCache.has(id))) {
@@ -1538,7 +1543,7 @@ function renderBannerPreview() {
 function stripHTML(emptyHtml, plain) {
   const ms = S.session.map((id) => metaCache.get(id)).filter(Boolean);
   if (!ms.length) return `<div class="empty${plain ? ' plain' : ''}">${emptyHtml}</div>`;
-  return `<div class="strip">${ms.map((m, i) => `<div class="th"><button class="th-img" data-sview="${i}" aria-label="View photo ${i + 1}"><img src="${thumbUrl(m)}" alt=""></button><span class="n${m.step ? '' : ' none'}">${m.step ? m.step + ' ' + STEPS[m.step - 1].b : 'Not set'}</span><button class="x" data-sdel="${esc(m.id)}" aria-label="Delete photo ${i + 1}">${ic('close')}</button></div>`).join('')}</div>`;
+  return `<div class="strip">${ms.map((m, i) => `<div class="th"><button class="th-img" data-sview="${i}" aria-label="View photo ${i + 1}"><img src="${thumbUrl(m)}" alt=""></button><span class="n${m.step ? '' : ' none'}">${m.step ? STEPS[m.step - 1].b : 'Not set'}</span><button class="x" data-sdel="${esc(m.id)}" aria-label="Delete photo ${i + 1}">${ic('close')}</button></div>`).join('')}</div>`;
 }
 function renderSession(scrollEnd) {
   const n = S.session.length;
@@ -1556,11 +1561,11 @@ function renderSession(scrollEnd) {
   if (scrollEnd) $$('.strip').forEach((s) => { s.scrollLeft = s.scrollWidth; });
 }
 const STEPS = [
-  { t: 'Overall Tire Condition', d: 'Full photo of the tire showing the damage, from far away', s: 'Full tire, damage from far away', b: 'Full tire' },
-  { t: 'Damage / Injury', d: 'One photo of the damaged area close-up', s: 'Damage close-up', b: 'Close-up' },
-  { t: 'Inside Damage', d: 'Photo of the damage / bubble from inside the tire', s: 'Inside damage', b: 'Inside' },
-  { t: 'Serial Number & Brand', d: 'Clear photo showing serial number and brand markings', s: 'Serial # & brand markings', b: 'Serial #' },
-  { t: 'Painted Tire', d: 'Photo of the tire once it has been painted', s: 'Painted tire', b: 'Painted' }
+  { t: 'Overall Tire Condition', d: 'Full photo of the tire showing the damage, from far away', s: 'Full tire, damage from far away', b: 'Far Damage' },
+  { t: 'Damage / Injury', d: 'Photo of the damage area close-up', s: 'Damage close-up', b: 'Close Damage' },
+  { t: 'Inside Damage', d: 'Photo of the damage / condition of the inside of the tire', s: 'Inside damage', b: 'Inside' },
+  { t: 'Serial Number & Brand', d: 'Clear photo of the brand number and serial number', s: 'Serial # & brand markings', b: 'Serial/Brand' },
+  { t: 'Painted Tire', d: 'Photo of the tire painted with the brand number and status', s: 'Painted tire', b: 'Painted Tire' }
 ];
 function renderGuide() {
   $('#guide-steps').innerHTML = STEPS.map((x, i) => `<li><span class="num">${i + 1}</span><span><b>${x.t}</b><span class="d">${x.d}</span></span></li>`).join('');
@@ -1640,7 +1645,7 @@ function renderSettings() {
     <h3>Unit number keyboard</h3>
     <div class="segs"><button class="seg ${!S.unitPad ? 'sel' : ''}" data-set="kb-text">Full keyboard</button><button class="seg ${S.unitPad ? 'sel' : ''}" data-set="kb-num">Number pad</button></div>
     <h3>Sending</h3>
-    <button class="toggle-row" data-set="text"><span class="tt"><b>Add details as text</b><small>Sends text like “T165 - P4 - 2259 hrs - Scrap” along with the photos, and lets you fill in hours and reason before sending.</small></span><span class="sw-t ${S.includeText ? 'on' : ''}"></span></button>
+    <button class="toggle-row" data-set="text"><span class="tt"><b>Add details as text</b><small>Sends text like “Unit 152 - Position P4 - 7,893 hrs - Repair” along with the photos, and lets you fill in hours and reason before sending.</small></span><span class="sw-t ${S.includeText ? 'on' : ''}"></span></button>
     <h3>Stored photos</h3>
     <p class="note">Photos stay inside this app for 7 days, then delete themselves. Photos you take here never go into your Photos app.</p>
     <button class="btn btn-danger" data-set="wipe">${ic('trash')}Delete all photos now</button>
