@@ -282,8 +282,7 @@ input{font:inherit;color:inherit}
 .chk-h span{color:var(--tx2);font-weight:700;font-size:13px}
 .chk ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
 .chk li{font-size:14.5px;color:#d6d6d6;border-radius:10px;line-height:1.3}
-.chk li button{display:flex;align-items:center;gap:10px;width:100%;min-height:40px;padding:6px;border-radius:10px;color:inherit;text-align:left}
-.chk li button:active{background:rgba(255,255,255,.06)}
+.chk li .row{display:flex;align-items:center;gap:10px;width:100%;min-height:36px;padding:5px 6px;border-radius:10px}
 .chk li .lb{flex:1;min-width:0}
 .chk li .ct{color:var(--tx2);font-size:12px;font-weight:700;white-space:nowrap}
 .chk-f{margin:8px 4px 0;color:var(--tx3);font-size:12.5px;line-height:1.35}
@@ -568,7 +567,7 @@ const DEF = {
   positions: ['P1', 'P2', 'P3', 'P4', 'P5', 'P6'],
   includeText: true, unitPad: false, recentUnits: [],
   session: [], facing: 'environment', tipHidden: false, saveTipSeen: false,
-  hours: '', reason: '', serial: '', damage: '', guideClosed: false, activeStep: 0
+  hours: '', reason: '', serial: '', damage: '', guideClosed: false
 };
 let S = loadState();
 function loadState() {
@@ -700,7 +699,7 @@ function toast(msg, act, fn) {
   toastT = setTimeout(() => t.classList.remove('on'), act ? 5000 : 2800);
 }
 
-function overlay(html, onDismiss) {
+function overlay(html, onDismiss, opts = {}) {
   const el = document.createElement('div');
   el.className = 'ov';
   el.innerHTML = html;
@@ -717,7 +716,7 @@ function overlay(html, onDismiss) {
     }
   };
   el.addEventListener('click', (e) => {
-    if (e.target === el || e.target.closest('[data-close]')) { api.close(); if (onDismiss) onDismiss(); }
+    if ((e.target === el && !opts.sticky) || e.target.closest('[data-close]')) { api.close(); if (onDismiss) onDismiss(); }
   });
   return api;
 }
@@ -806,67 +805,85 @@ async function compose(src, sx, sy, sw, sh, m) {
   c.width = c.height = 0; t.width = t.height = 0;
   return out;
 }
-/* checklist assignment: each photo belongs to one of the 5 guideline photos (or none) */
-const pendingSteps = [];
+/* checklist: each photo is one of the 5 required photos (STEPS); sv:2 marks the current list */
+const STEP_VER = 2;
+// Photos tagged with the first version of the list (Tire ID first) are moved to the new numbers.
+function normStep(m) {
+  if (!m || m.sv === STEP_VER) return m;
+  if (m.step) {
+    m.step = [null, null, 1, 2, 3, 4][m.step] || null;
+    m.sv = STEP_VER;
+    try { store.putMeta(m); } catch (e) {}
+  }
+  return m;
+}
 function stepCounts(ids = S.session) {
   const c = [0, 0, 0, 0, 0, 0];
   ids.forEach((id) => { const m = metaCache.get(id); if (m && m.step) c[m.step]++; });
   return c;
 }
-// The item the next photo goes to: the one the user tapped, else the first with no photo.
-function activeStep() {
-  if (S.activeStep >= 1 && S.activeStep <= STEPS.length) return S.activeStep;
-  const c = stepCounts();
-  pendingSteps.forEach((s) => { if (s) c[s]++; });
+function firstMissing(c = stepCounts()) {
   for (let i = 1; i <= STEPS.length; i++) if (!c[i]) return i;
   return 0;
 }
-const stepName = (k) => (k ? `${k} · ${STEPS[k - 1].s}` : 'Extra (not on the checklist)');
-const stepShort = (k) => (k ? `${k} · ${STEPS[k - 1].b}` : 'an extra photo');
+const stepName = (k) => (k ? `${k} · ${STEPS[k - 1].s}` : 'Not picked yet');
 async function setStep(id, k) {
   const m = metaCache.get(id);
   if (!m) return;
   m.step = k || null;
+  m.sv = STEP_VER;
   try { await store.putMeta(m); } catch (e) {}
   renderSession();
 }
-function openStepPicker(id, onDone) {
-  const m = metaCache.get(id);
-  if (!m) return;
-  const api = overlay(`<div class="dlg"><h3>Which photo is this?</h3>
-    <div class="pick">${STEPS.map((x, i) => `<button class="pk ${m.step === i + 1 ? 'sel' : ''}" data-pk="${i + 1}"><span class="num">${i + 1}</span><span>${x.s}</span></button>`).join('')}
-      <button class="pk ${!m.step ? 'sel' : ''}" data-pk="0"><span class="num none">–</span><span>Extra, not on the checklist</span></button></div>
-    <div class="acts"><button class="tbtn" data-close>Cancel</button></div></div>`);
-  api.el.addEventListener('click', async (e) => {
-    const b = e.target.closest('[data-pk]');
-    if (!b) return;
-    api.close();
-    await setStep(id, +b.dataset.pk);
-    toast(`Changed to ${stepShort(+b.dataset.pk)}`);
-    if (onDone) onDone();
+// Popup with the 5 photo types. `must` = right after taking a photo: no Cancel,
+// tapping outside does nothing, only a choice (or Retake) closes it.
+function stepPopup(id, must, removeLabel) {
+  return new Promise((resolve) => {
+    const m = metaCache.get(id);
+    if (!m) { resolve(0); return; }
+    const c = stepCounts();
+    if (m.step) c[m.step]--;
+    const sug = firstMissing(c);
+    const api = overlay(`<div class="dlg ask"><h3>Which photo is this?</h3>
+      <img class="ask-img" src="${thumbUrl(m)}" alt="The photo you just took">
+      <div class="pick">${STEPS.map((x, i) => {
+        const k = i + 1;
+        const tag = c[k] ? `<span class="pc">${c[k]} taken</span>` : (k === sug ? '<span class="nx">NEXT</span>' : '');
+        return `<button class="pk ${m.step === k ? 'sel' : ''} ${k === sug ? 'sug' : ''}" data-pk="${k}"><span class="num">${k}</span><span class="pl">${x.s}</span>${tag}</button>`;
+      }).join('')}</div>
+      <div class="acts">${must
+        ? `<button class="tbtn del" data-remove>${ic('trash', 'sm')}${removeLabel || 'Retake (delete this photo)'}</button>`
+        : '<button class="tbtn" data-close>Cancel</button>'}</div></div>`,
+      () => resolve(m.step || 0), { sticky: must });
+    api.el.addEventListener('click', async (e) => {
+      const b = e.target.closest('[data-pk]');
+      if (b) {
+        api.close();
+        await setStep(id, +b.dataset.pk);
+        resolve(+b.dataset.pk);
+        return;
+      }
+      if (e.target.closest('[data-remove]')) {
+        api.close();
+        try { await deletePhotos([id]); } catch (err) {}
+        resolve(-1);
+      }
+    });
   });
 }
-async function savePhoto(src, sx, sy, sw, sh, quiet) {
-  const step = activeStep();
-  pendingSteps.push(step);
-  if (S.activeStep) { S.activeStep = 0; save(); }
-  const meta = { id: uid(), unit: unitClean(), position: posClean(), ts: Date.now(), banner: S.banner, step: step || null };
-  try {
-    const r = await compose(src, sx, sy, sw, sh, meta);
-    meta.w = r.w; meta.h = r.h; meta.thumb = r.thumb;
-    await store.add(meta, { id: meta.id, data: r.full });
-    metaCache.set(meta.id, meta);
-    S.session.push(meta.id);
-    cacheBlob(meta.id, r.full);
-  } finally {
-    const k = pendingSteps.indexOf(step);
-    if (k >= 0) pendingSteps.splice(k, 1);
-  }
+const openStepPicker = (id, onDone) => stepPopup(id, false).then(() => { if (onDone) onDone(); });
+async function savePhoto(src, sx, sy, sw, sh) {
+  const meta = { id: uid(), unit: unitClean(), position: posClean(), ts: Date.now(), banner: S.banner, step: null, sv: STEP_VER };
+  const r = await compose(src, sx, sy, sw, sh, meta);
+  meta.w = r.w; meta.h = r.h; meta.thumb = r.thumb;
+  await store.add(meta, { id: meta.id, data: r.full });
+  metaCache.set(meta.id, meta);
+  S.session.push(meta.id);
+  cacheBlob(meta.id, r.full);
   addRecentUnit(meta.unit);
   save();
   renderSession(true);
   renderRecents();
-  if (!quiet) toast(`Saved as ${stepShort(meta.step)}`, 'Change', () => openStepPicker(meta.id));
   return meta;
 }
 function checkReady() {
@@ -957,15 +974,21 @@ function updateAspect() {
   p.style.setProperty('--ar', aspect());
   $('#ar-badge').textContent = arLabel();
 }
+let shooting = false;
 async function shoot() {
+  if (shooting) return;
   if (!checkReady()) return;
   if (!stream || video.readyState < 2 || !video.videoWidth) { $('#file-cam').click(); return; }
+  shooting = true;
   const fx = $('#flashfx');
   fx.classList.remove('go'); void fx.offsetWidth; fx.classList.add('go');
   if (navigator.vibrate) { try { navigator.vibrate(25); } catch (e) {} }
   const [sx, sy, sw, sh] = crop(video.videoWidth, video.videoHeight, aspect());
-  try { await savePhoto(video, sx, sy, sw, sh); }
-  catch (e) { console.error(e); toast("Couldn't save that photo. Try again."); }
+  try {
+    const meta = await savePhoto(video, sx, sy, sw, sh);
+    await stepPopup(meta.id, true);
+  } catch (e) { console.error(e); toast("Couldn't save that photo. Try again."); }
+  finally { shooting = false; }
 }
 function loadImg(file) {
   return new Promise((res, rej) => {
@@ -980,20 +1003,18 @@ async function addFiles(files) {
   files = [...(files || [])];
   if (!files.length) return;
   if (!checkReady()) return;
-  let ok = 0;
-  if (files.length > 1) toast(`Adding ${files.length} photos…`);
+  let ok = 0, failed = 0;
   for (const f of files) {
-    let u = null;
+    let u = null, meta = null;
     try {
       const r = await loadImg(f); u = r.u;
       const iw = r.im.naturalWidth, ih = r.im.naturalHeight;
-      await savePhoto(r.im, ...crop(iw, ih, aspectFor(iw, ih)), files.length > 1);
-      ok++;
-    } catch (e) { console.error(e); }
+      meta = await savePhoto(r.im, ...crop(iw, ih, aspectFor(iw, ih)));
+    } catch (e) { console.error(e); failed++; }
     finally { if (u) URL.revokeObjectURL(u); }
+    if (meta && (await stepPopup(meta.id, true, 'Remove this photo')) > 0) ok++;
   }
-  if (!ok) toast("Couldn't add that photo");
-  else if (files.length > 1) toast(`Added ${plural(ok, 'photo')}. Tap a photo to change its checklist item.`);
+  if (failed) toast(failed === files.length ? "Couldn't add that photo" : `Couldn't add ${plural(failed, 'photo')}`);
 }
 
 /* ---------------- sending ---------------- */
@@ -1231,7 +1252,7 @@ function showNextTire() {
     if (b.dataset.nt === 'keep') return;
     S.session = [];
     S.position = '';
-    S.hours = ''; S.reason = ''; S.serial = ''; S.damage = ''; S.activeStep = 0;
+    S.hours = ''; S.reason = ''; S.serial = ''; S.damage = '';
     if (b.dataset.nt === 'new') S.unit = '';
     save();
     trimBlobCache();
@@ -1380,7 +1401,7 @@ function renderBannerPreview() {
 function stripHTML(emptyHtml, plain) {
   const ms = S.session.map((id) => metaCache.get(id)).filter(Boolean);
   if (!ms.length) return `<div class="empty${plain ? ' plain' : ''}">${emptyHtml}</div>`;
-  return `<div class="strip">${ms.map((m, i) => `<div class="th"><button class="th-img" data-sview="${i}" aria-label="View photo ${i + 1}"><img src="${thumbUrl(m)}" alt=""></button><span class="n${m.step ? '' : ' none'}">${m.step ? m.step + ' ' + STEPS[m.step - 1].b : 'Extra'}</span><button class="x" data-sdel="${esc(m.id)}" aria-label="Delete photo ${i + 1}">${ic('close')}</button></div>`).join('')}</div>`;
+  return `<div class="strip">${ms.map((m, i) => `<div class="th"><button class="th-img" data-sview="${i}" aria-label="View photo ${i + 1}"><img src="${thumbUrl(m)}" alt=""></button><span class="n${m.step ? '' : ' none'}">${m.step ? m.step + ' ' + STEPS[m.step - 1].b : 'Not set'}</span><button class="x" data-sdel="${esc(m.id)}" aria-label="Delete photo ${i + 1}">${ic('close')}</button></div>`).join('')}</div>`;
 }
 function renderSession(scrollEnd) {
   const n = S.session.length;
@@ -1398,11 +1419,11 @@ function renderSession(scrollEnd) {
   if (scrollEnd) $$('.strip').forEach((s) => { s.scrollLeft = s.scrollWidth; });
 }
 const STEPS = [
-  { t: 'Tire Identification', d: 'Clear photo showing the tire brand', s: 'Tire ID: brand showing', b: 'Brand' },
-  { t: 'Overall Tire Condition', d: 'Full photo of the tire showing damage', s: 'Full tire showing damage', b: 'Full tire' },
+  { t: 'Overall Tire Condition', d: 'Full photo of the tire showing the damage, from far away', s: 'Full tire, damage from far away', b: 'Full tire' },
   { t: 'Damage / Injury', d: 'One photo of the damaged area close-up', s: 'Damage close-up', b: 'Close-up' },
-  { t: 'Inside Damage', d: 'Photo of the damage / bubble from inside the tire', s: 'Inside damage / bubble', b: 'Inside' },
-  { t: 'Serial Number & Brand', d: 'Clear photo showing serial number and brand markings', s: 'Serial # & brand markings', b: 'Serial #' }
+  { t: 'Inside Damage', d: 'Photo of the damage / bubble from inside the tire', s: 'Inside damage', b: 'Inside' },
+  { t: 'Serial Number & Brand', d: 'Clear photo showing serial number and brand markings', s: 'Serial # & brand markings', b: 'Serial #' },
+  { t: 'Painted Tire', d: 'Photo of the tire once it has been painted', s: 'Painted tire', b: 'Painted' }
 ];
 function renderGuide() {
   $('#guide-steps').innerHTML = STEPS.map((x, i) => `<li><span class="num">${i + 1}</span><span><b>${x.t}</b><span class="d">${x.d}</span></span></li>`).join('');
@@ -1411,16 +1432,16 @@ function renderGuide() {
   g.querySelector('.gh').setAttribute('aria-expanded', S.guideClosed ? 'false' : 'true');
 }
 function renderChecklist() {
-  const c = stepCounts(), act = activeStep();
+  const c = stepCounts(), act = firstMissing(c);
   const covered = STEPS.filter((_, i) => c[i + 1]).length;
   $('#cam-chk').innerHTML = `<div class="chk-h">Photos to take<span>${covered} of ${STEPS.length}</span></div>
     <ol>${STEPS.map((x, i) => {
       const k = i + 1, cnt = c[k];
       const cls = [cnt ? 'done' : '', k === act ? 'next' : ''].join(' ').trim();
       const tail = k === act ? '<span class="nx">NEXT</span>' : (cnt > 1 ? `<span class="ct">${cnt} photos</span>` : '');
-      return `<li class="${cls}"><button data-step="${k}"><span class="num">${cnt ? ic('check') : k}</span><span class="lb">${x.s}</span>${tail}</button></li>`;
+      return `<li class="${cls}"><div class="row"><span class="num">${cnt ? ic('check') : k}</span><span class="lb">${x.s}</span>${tail}</div></li>`;
     }).join('')}</ol>
-    <p class="chk-f">${act ? 'The next photo goes to NEXT. Tap another item to switch.' : 'All 5 done. Tap an item to add another photo to it.'}</p>`;
+    <p class="chk-f">${act ? 'After each photo, pick which one it is.' : 'All 5 taken. You can still add more photos to any of them.'}</p>`;
 }
 function renderAll() {
   renderTip(); renderInputs(); renderRecents(); renderPositions(); renderSession(); renderBannerPreview();
@@ -1433,7 +1454,7 @@ async function renderHistory() {
   await purge();
   let all = [];
   try { all = await store.allMeta(); } catch (e) {}
-  all.forEach((m) => metaCache.set(m.id, m));
+  all.forEach((m) => metaCache.set(m.id, normStep(m)));
   HG = [];
   if (!all.length) { list.innerHTML = `<div class="empty">No photos from the last 7 days.</div>`; return; }
   const units = new Map();
@@ -1578,7 +1599,7 @@ document.addEventListener('click', async (e) => {
   if (d.hshare) { const G = HG[+d.hshare]; if (G) sendIds(G.ids.slice(), false); return; }
   if (d.hopen) {
     const G = HG[+d.hopen]; if (!G) return;
-    S.unit = G.unit; S.position = G.position || ''; S.session = G.ids.slice(); S.activeStep = 0;
+    S.unit = G.unit; S.position = G.position || ''; S.session = G.ids.slice();
     addRecentUnit(G.unit); save(); preloadSession();
     go('camera');
     toast(`Opened ${plural(G.ids.length, 'photo')} for Unit #${G.unit}`);
@@ -1603,11 +1624,6 @@ document.addEventListener('click', async (e) => {
     case 'hide-tip': S.tipHidden = true; save(); renderTip(); break;
     case 'guide-toggle': S.guideClosed = !S.guideClosed; save(); renderGuide(); break;
     case 'clear-all': wipeAll(); break;
-  }
-  if (d.step) {
-    const k = +d.step;
-    S.activeStep = S.activeStep === k ? 0 : k;
-    save(); renderChecklist();
   }
 });
 async function deleteSessionPhoto(id) {
@@ -1643,7 +1659,7 @@ async function init() {
   try { await DB.open(); store = DB; } catch (e) { store = Mem; }
   await purge();
   const metas = await Promise.all(S.session.map((id) => store.getMeta(id).catch(() => null)));
-  S.session = S.session.filter((id, k) => { if (metas[k]) { metaCache.set(id, metas[k]); return true; } return false; });
+  S.session = S.session.filter((id, k) => { if (metas[k]) { metaCache.set(id, normStep(metas[k])); return true; } return false; });
   save();
   preloadSession();
   applyKeyboard();
