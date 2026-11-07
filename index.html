@@ -92,6 +92,11 @@ input{font:inherit;color:inherit}
 .pos.sel{background:var(--or);border-color:var(--or);color:#fff}
 .pos-row.filled .pos{background:var(--btn);border-color:var(--btn)}
 .pos-row.filled .pos.sel{background:var(--or);border-color:var(--or)}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-6px -6px 14px 0}
+.card-h h2{margin:0!important}
+.clear-btn{color:var(--red-soft);display:inline-flex;align-items:center;gap:4px;padding:0 12px}
+.clear-btn .ic{width:20px;height:20px}
+.clear-btn:active{background:rgba(255,112,112,.12)}
 .opt-l{color:var(--tx3);font-weight:600;font-size:13px;margin-left:2px}
 .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px}
 .stat-row .pos{max-width:none;padding:0 4px}
@@ -114,6 +119,8 @@ input{font:inherit;color:inherit}
 .empty.plain{background:none;padding:22px 10px;margin:0}
 .act-row{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:14px}
 .act-row .btn{height:50px}
+.park-btn{margin-top:14px;height:52px}
+.park-btn .ic{color:var(--or)}
 .pair{display:flex;gap:4px}
 .pair .icon-btn.big{width:54px}
 .icon-btn.dim{opacity:.5}
@@ -414,7 +421,7 @@ html.locked .toast{bottom:calc(var(--sb) + 120px)}
   </header>
 
   <div class="card">
-    <h2>Job Session Setup</h2>
+    <div class="card-h"><h2>Job Session Setup</h2><button class="tbtn clear-btn" data-action="clear"><span class="ico" data-ic="close"></span>Clear</button></div>
     <input class="field" id="home-unit" placeholder="Unit Number" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done">
     <div class="recent" id="recent"></div>
     <div class="sec"><span class="ico" data-ic="tirepos"></span>Tire Position Selector</div>
@@ -499,6 +506,7 @@ html.locked .toast{bottom:calc(var(--sb) + 120px)}
       <div class="chk" id="cam-chk"></div>
       <div class="sess-head sm"><span class="ico or" data-ic="photos"></span><h2>Session Photos</h2><span class="pill" id="cam-pill">0 Captured</span><span class="sess-upd" hidden>Updating…</span></div>
       <div id="cam-strip"></div>
+      <button class="btn btn-ghost wide park-btn" data-action="park" id="cam-park" hidden><span class="ico" data-ic="history"></span><span>Save tire to History</span></button>
     </div>
   </div>
 </section>
@@ -1311,9 +1319,12 @@ async function finishShare(files, text, fromSession, api) {
     if (r === 'sent') { if (fromSession) resetAfterSend(); else toast('Sent'); }
   }
 }
-// After sending the current tire: clear the main page for the next one and show History.
-function resetAfterSend() {
+// Clears the main page for the next tire. The photos stay in History, with the
+// serial # and damage notes kept on them so Edit can bring everything back.
+function finishTire(msg) {
   clearTimeout(syncT); syncT = null;
+  const ids = S.session.slice();
+  patchPhotos(ids, { serial: String(S.serial || '').trim(), damage: String(S.damage || '').trim() });
   S.session = [];
   S.unit = ''; S.position = ''; S.hours = ''; S.reason = ''; S.serial = ''; S.damage = '';
   save();
@@ -1321,7 +1332,59 @@ function resetAfterSend() {
   renderAll();
   history.replaceState(null, '', '#/');
   go('history');
-  toast('Sent. The photos are saved here in History.');
+  toast(msg);
+}
+function resetAfterSend() { finishTire('Sent. The photos are saved here in History.'); }
+// Clear button on the main page: empties the boxes and the photos on the page.
+// With photos, asks whether to keep them in History or delete them.
+function clearChoice(n) {
+  return new Promise((res) => {
+    const api = overlay(`<div class="dlg"><h3>Clear everything?</h3>
+      <p>This clears the unit, position, status, hours and the ${plural(n, 'photo')} on this page.</p>
+      <div class="stack">
+        <button class="btn btn-or wide" data-cc="keep">Clear, keep photos in History</button>
+        <button class="btn btn-danger wide" data-cc="delete">${ic('trash')}Clear and delete the photos</button>
+        <button class="tbtn wide" data-close>Cancel</button>
+      </div></div>`, () => res(null));
+    api.el.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-cc]');
+      if (b) { api.close(); res(b.dataset.cc); }
+    });
+  });
+}
+async function clearAll() {
+  const ids = S.session.slice(), n = ids.length;
+  const prev = { unit: S.unit, position: S.position, hours: S.hours, reason: S.reason, serial: S.serial, damage: S.damage };
+  const hasInfo = Object.values(prev).some((v) => String(v || '').trim());
+  if (!n && !hasInfo) { toast('Nothing to clear'); return; }
+  const mode = n ? await clearChoice(n) : 'keep';
+  if (!mode) return;
+  clearTimeout(syncT); syncT = null;
+  if (mode === 'delete') {
+    try { await deletePhotos(ids); } catch (e) { toast("Couldn't delete the photos"); return; }
+  } else if (n) {
+    await patchPhotos(ids, { serial: String(S.serial || '').trim(), damage: String(S.damage || '').trim() });
+  }
+  S.session = [];
+  S.unit = ''; S.position = ''; S.hours = ''; S.reason = ''; S.serial = ''; S.damage = '';
+  save(); trimBlobCache(); renderAll(); window.scrollTo(0, 0);
+  if (mode === 'delete') { toast(`Cleared. ${plural(n, 'photo')} deleted.`); return; }
+  toast(n ? 'Cleared. The photos are still in History.' : 'Cleared', 'Undo', () => {
+    Object.assign(S, prev);
+    S.session = ids.filter((id) => metaCache.has(id));
+    save(); renderAll(); preloadSession();
+  });
+}
+let parking = false;
+async function parkTire() {
+  if (!S.session.length || parking) return;
+  parking = true;
+  const btn = $('#cam-park'), unit = unitClean();
+  btn.disabled = true; btn.lastChild.textContent = 'Saving…';
+  try { await syncSession(); } catch (e) {}   // apply any changes still being made to the labels
+  btn.disabled = false; btn.lastChild.textContent = 'Save tire to History';
+  parking = false;
+  finishTire(`${unit ? 'Unit #' + unit : 'Tire'} saved in History. Tap Edit to pick it back up.`);
 }
 // Labelled photos as files, in the given order (redraws any whose details changed).
 async function buildFiles(ids, metas) {
@@ -1397,7 +1460,7 @@ async function sendDialog(ids, metas, fromSession) {
   const firstWith = (k) => (metas.find((m) => m[k]) || {})[k] || '';
   const det = fromSession
     ? { hours: S.hours || firstWith('hours'), reason: S.reason || firstWith('status'), serial: S.serial, damage: S.damage }
-    : { hours: firstWith('hours'), reason: firstWith('status'), serial: '', damage: '' };
+    : { hours: firstWith('hours'), reason: firstWith('status'), serial: firstWith('serial'), damage: firstWith('damage') };
   const fields = withText ? `
     <label class="flbl" for="d-hours">Hours on tire</label>
     <div class="hrs"><input class="field sm" id="d-hours" inputmode="decimal" autocomplete="off" placeholder="e.g. 2259" value="${esc(det.hours)}"><span>hrs</span></div>
@@ -1649,6 +1712,7 @@ function renderSession(scrollEnd) {
   $('#cam-send').classList.toggle('dim', n === 0);
   $('#cam-save').classList.toggle('dim', n === 0);
   $('#home-actions').hidden = n === 0;
+  $('#cam-park').hidden = n === 0;
   $('#home-send').innerHTML = `${ic('send')}Send ${n === 1 ? 'photo' : n + ' photos'}`;
   $('#home-strip').innerHTML = stripHTML("No photos in this session yet.<br>Tap TAKE INSPECTION PHOTOS, or Add to pick from your photos.");
   $('#cam-strip').innerHTML = stripHTML('No photos captured in this session yet', true);
@@ -1847,7 +1911,7 @@ document.addEventListener('click', async (e) => {
     clearTimeout(syncT); syncT = null;
     const m0 = metaCache.get(G.ids[0]) || {};
     S.unit = G.unit; S.position = G.position || ''; S.session = G.ids.slice();
-    S.hours = m0.hours || ''; S.reason = m0.status || ''; S.serial = ''; S.damage = '';
+    S.hours = m0.hours || ''; S.reason = m0.status || ''; S.serial = m0.serial || ''; S.damage = m0.damage || '';
     addRecentUnit(G.unit); save(); preloadSession();
     back();
     toast(`Editing Unit #${G.unit}. Changes you make here update these photos.`);
@@ -1873,6 +1937,8 @@ document.addEventListener('click', async (e) => {
     case 'guide-toggle': S.guideClosed = !S.guideClosed; save(); renderGuide(); break;
     case 'clear-all': wipeAll(); break;
     case 'save-all': saveAllHistory(); break;
+    case 'park': parkTire(); break;
+    case 'clear': clearAll(); break;
   }
 });
 async function saveAllHistory() {
