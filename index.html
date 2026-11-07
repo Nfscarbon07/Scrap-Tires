@@ -254,6 +254,82 @@ input{font:inherit;color:inherit}
 .sw-t.on::after{left:24px;background:#fff}
 .ver{color:var(--tx3);font-size:13px;margin-top:28px;text-align:center}
 
+/* guidelines (home) */
+.guide .gh{display:flex;align-items:center;gap:12px;width:100%;text-align:left}
+.guide .gh .t{flex:1;min-width:0}
+.guide .gh h2{margin:0;font-size:19px}
+.guide .gh small{display:block;color:var(--tx2);font-size:14px;font-weight:600;margin-top:2px}
+.guide .gh .ico .ic{width:28px;height:28px}
+.guide .chev{color:var(--tx2);transition:transform .2s}
+.guide.closed .chev{transform:rotate(-90deg)}
+.guide.closed .gbody{display:none}
+.gbody{margin-top:14px;font-size:15px;line-height:1.45}
+.gbody p{margin:0 0 14px;color:var(--tx2)}
+.steps{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{display:flex;gap:12px;align-items:flex-start}
+.num{flex:none;width:28px;height:28px;border-radius:50%;background:var(--or);color:#fff;font-weight:800;display:grid;place-items:center;font-size:14px}
+.steps b{display:block}
+.steps .d{color:var(--tx2);font-size:14px}
+.gsub{font-weight:800;color:var(--or-t);margin:0 0 8px;font-style:italic}
+.req{margin:0 0 16px;padding-left:22px}
+.req li{margin:3px 0}
+.example{background:var(--card2);border-radius:12px;padding:12px 14px;font-size:14.5px;overflow-wrap:anywhere}
+.example b{display:block;color:var(--tx2);font-size:13px;margin-bottom:4px}
+
+/* photo checklist (camera) */
+.chk{background:#151515;border:1px solid #2c2c2c;border-radius:16px;padding:12px 12px 10px;margin:4px 0 14px}
+.chk-h{display:flex;align-items:center;justify-content:space-between;font-weight:800;font-size:15px;margin:0 2px 8px}
+.chk-h span{color:var(--tx2);font-weight:700;font-size:13px}
+.chk ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.chk li{font-size:14.5px;color:#d6d6d6;border-radius:10px;line-height:1.3}
+.chk li button{display:flex;align-items:center;gap:10px;width:100%;min-height:40px;padding:6px;border-radius:10px;color:inherit;text-align:left}
+.chk li button:active{background:rgba(255,255,255,.06)}
+.chk li .lb{flex:1;min-width:0}
+.chk li .ct{color:var(--tx2);font-size:12px;font-weight:700;white-space:nowrap}
+.chk-f{margin:8px 4px 0;color:var(--tx3);font-size:12.5px;line-height:1.35}
+.th .n.none{color:#cfcfcf}
+.pick{display:flex;flex-direction:column;gap:8px}
+.pk{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:#1f1d22;border:2px solid transparent;text-align:left;font-size:15.5px;min-height:50px}
+.pk.sel{border-color:var(--or)}
+.num.none{background:#555}
+.miss{background:rgba(255,90,0,.16);border:1.5px solid rgba(255,90,0,.55);border-radius:14px;padding:10px 12px;margin:0 0 14px}
+.miss b{display:block;margin-bottom:6px}
+.miss ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.miss li{display:flex;align-items:center;gap:10px;font-size:14.5px}
+.miss .num{width:24px;height:24px;font-size:13px}
+.miss small{display:block;color:var(--tx2);margin-top:8px;font-size:13px}
+.v-step{margin-top:8px;display:inline-flex;align-items:center;gap:8px;background:#1d1d1d;border:1.5px solid #444;border-radius:10px;padding:7px 10px;font-size:14px;font-weight:600;max-width:100%;text-align:left}
+.v-step b{color:var(--or-t)}
+.v-step .ic{color:var(--tx2)}
+.chk li .num{width:24px;height:24px;font-size:13px;background:#3a3a3a;color:#ddd}
+.chk li .num .ic{width:16px;height:16px}
+.chk li.done{color:var(--tx3)}
+.chk li.done .num{background:#2e7d32;color:#fff}
+.chk li.next{background:rgba(255,90,0,.16);color:#fff}
+.chk li.next .num{background:var(--or);color:#fff}
+.chk li .nx{margin-left:auto;color:var(--or-t);font-size:12px;font-weight:800;letter-spacing:.4px}
+
+/* send reminder */
+.lead{margin:2px 0 8px!important;font-weight:700;color:var(--tx)!important}
+.req-list{list-style:none;margin:0 0 6px;padding:0;display:flex;flex-direction:column;gap:6px}
+.req-list li{display:flex;gap:10px;align-items:center;font-size:15px;padding:8px 10px;border-radius:12px;background:#1f1d22;line-height:1.3}
+.req-list .mk{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;flex:none;font-weight:900;font-size:14px}
+.req-list .mk .ic{width:15px;height:15px}
+.req-list li.ok .mk{background:#2e7d32;color:#fff}
+.req-list li.todo{background:rgba(255,90,0,.16)}
+.req-list li.todo .mk{background:var(--or);color:#fff}
+.req-list small{display:block;color:var(--tx2);font-size:13px}
+.flbl{display:block;font-size:13px;color:var(--tx2);font-weight:700;margin:14px 0 6px}
+.flbl i{font-weight:500}
+.hrs{display:flex;align-items:center;gap:10px;color:var(--tx2)}
+.hrs .field{margin:0;max-width:170px}
+.rsn{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rsn .seg{width:100%;height:46px;text-align:center}
+.opt2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt2 .field{margin:0}
+.msgprev{margin-top:14px;background:#1f1d22;border-radius:12px;padding:10px 12px;font-size:14px;overflow-wrap:anywhere;line-height:1.4}
+.msgprev small{display:block;color:var(--tx2);font-size:12px;font-weight:700;margin-bottom:2px}
+
 /* dialogs */
 .ov{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:calc(var(--st) + 16px) 16px calc(var(--sb) + 16px)}
 .dlg{background:var(--dlg);border-radius:28px;padding:24px 22px 18px;width:100%;max-width:420px;max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -337,6 +413,26 @@ html.locked .toast{bottom:calc(var(--sb) + 120px)}
       <button class="btn btn-or" id="home-send" data-action="send"></button>
     </div>
   </div>
+
+  <div class="card guide" id="guide">
+    <button class="gh" data-action="guide-toggle" aria-expanded="true">
+      <span class="ico or" data-ic="list"></span>
+      <span class="t"><h2>Tire Photo Guidelines</h2><small>Scrap and Repair Tracking</small></span>
+      <span class="ico chev" data-ic="chevd"></span>
+    </button>
+    <div class="gbody">
+      <p>Please text photos of every tire being scrapped, inspected, or evaluated for repair.</p>
+      <ol class="steps" id="guide-steps"></ol>
+      <div class="gsub">Text pics to supervisor include the following information:</div>
+      <ul class="req">
+        <li>Unit Number</li>
+        <li>Tire Position</li>
+        <li>Hours on Tire</li>
+        <li>Reason for Removal (Repair, Inspect, or Scrap)</li>
+      </ul>
+      <div class="example"><b>Example submission</b>T165 - Left Rear Inside - CA59-3214 - 2259 hrs - Shoulder Separation - Scrap</div>
+    </div>
+  </div>
 </section>
 
 <!-- ============ CAMERA ============ -->
@@ -373,6 +469,7 @@ html.locked .toast{bottom:calc(var(--sb) + 120px)}
           <button class="icon-btn big send-btn" data-action="send" id="cam-send" aria-label="Send photos"><span class="ico" data-ic="send"></span><span class="badge" id="send-badge"></span></button>
         </div>
       </div>
+      <div class="chk" id="cam-chk"></div>
       <div class="sess-head sm"><span class="ico or" data-ic="photos"></span><h2>Session Photos</h2><span class="pill" id="cam-pill">0 Captured</span></div>
       <div id="cam-strip"></div>
     </div>
@@ -453,6 +550,9 @@ const I = {
   chevl: '<path class="s" d="M15 5l-7 7 7 7"/>',
   chevr: '<path class="s" d="M9 5l7 7-7 7"/>',
   plus: '<path class="s" d="M12 5v14M5 12h14"/>',
+  check: '<path class="s" d="M5 12.5l4.5 4.5L19 7.5" stroke-width="3"/>',
+  chevd: '<path class="s" d="M6 9l6 6 6-6"/>',
+  list: '<rect class="s" x="4" y="3" width="16" height="18" rx="2.5"/><path class="s" d="M8.5 8h7M8.5 12h7M8.5 16h4.5"/>',
   download: '<path class="s" d="M12 3.5v11M7 10l5 5 5-5"/><path class="s" d="M4.5 15.5v3a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3"/>',
   shareios: '<path class="s" d="M12 3v12M8 7l4-4 4 4"/><path class="s" d="M8.5 10.5H6.5a1 1 0 0 0-1 1v8.5a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-8.5a1 1 0 0 0-1-1h-2"/>',
   phone: '<rect class="s" x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path class="s" d="M10.5 18.3h3"/>',
@@ -467,7 +567,8 @@ const DEF = {
   unit: '', position: '', banner: 'dark', shape: '4:3L',
   positions: ['P1', 'P2', 'P3', 'P4', 'P5', 'P6'],
   includeText: true, unitPad: false, recentUnits: [],
-  session: [], facing: 'environment', tipHidden: false, saveTipSeen: false
+  session: [], facing: 'environment', tipHidden: false, saveTipSeen: false,
+  hours: '', reason: '', serial: '', damage: '', guideClosed: false, activeStep: 0
 };
 let S = loadState();
 function loadState() {
@@ -505,6 +606,7 @@ const DB = {
   allMeta() { return this.req(this.d.transaction('meta').objectStore('meta').getAll()); },
   getMeta(id) { return this.req(this.d.transaction('meta').objectStore('meta').get(id)); },
   getFull(id) { return this.req(this.d.transaction('full').objectStore('full').get(id)); },
+  putMeta(m) { const tx = this.d.transaction('meta', 'readwrite'); tx.objectStore('meta').put(m); return this.done(tx); },
   del(ids) { const tx = this.d.transaction(['meta', 'full'], 'readwrite'); ids.forEach((id) => { tx.objectStore('meta').delete(id); tx.objectStore('full').delete(id); }); return this.done(tx); },
   clear() { const tx = this.d.transaction(['meta', 'full'], 'readwrite'); tx.objectStore('meta').clear(); tx.objectStore('full').clear(); return this.done(tx); },
   oldIds(cutoff) {
@@ -522,6 +624,7 @@ const Mem = {
   async allMeta() { return [...this.m.values()]; },
   async getMeta(id) { return this.m.get(id); },
   async getFull(id) { return this.f.get(id); },
+  async putMeta(m) { this.m.set(m.id, m); },
   async del(ids) { ids.forEach((i) => { this.m.delete(i); this.f.delete(i); }); },
   async clear() { this.m.clear(); this.f.clear(); },
   async oldIds(c) { return [...this.m.values()].filter((x) => x.ts <= c).map((x) => x.id); }
@@ -703,18 +806,66 @@ async function compose(src, sx, sy, sw, sh, m) {
   c.width = c.height = 0; t.width = t.height = 0;
   return out;
 }
-async function savePhoto(src, sx, sy, sw, sh) {
-  const meta = { id: uid(), unit: unitClean(), position: posClean(), ts: Date.now(), banner: S.banner };
-  const r = await compose(src, sx, sy, sw, sh, meta);
-  meta.w = r.w; meta.h = r.h; meta.thumb = r.thumb;
-  await store.add(meta, { id: meta.id, data: r.full });
-  metaCache.set(meta.id, meta);
-  S.session.push(meta.id);
-  cacheBlob(meta.id, r.full);
+/* checklist assignment: each photo belongs to one of the 5 guideline photos (or none) */
+const pendingSteps = [];
+function stepCounts(ids = S.session) {
+  const c = [0, 0, 0, 0, 0, 0];
+  ids.forEach((id) => { const m = metaCache.get(id); if (m && m.step) c[m.step]++; });
+  return c;
+}
+// The item the next photo goes to: the one the user tapped, else the first with no photo.
+function activeStep() {
+  if (S.activeStep >= 1 && S.activeStep <= STEPS.length) return S.activeStep;
+  const c = stepCounts();
+  pendingSteps.forEach((s) => { if (s) c[s]++; });
+  for (let i = 1; i <= STEPS.length; i++) if (!c[i]) return i;
+  return 0;
+}
+const stepName = (k) => (k ? `${k} · ${STEPS[k - 1].s}` : 'Extra (not on the checklist)');
+async function setStep(id, k) {
+  const m = metaCache.get(id);
+  if (!m) return;
+  m.step = k || null;
+  try { await store.putMeta(m); } catch (e) {}
+  renderSession();
+}
+function openStepPicker(id, onDone) {
+  const m = metaCache.get(id);
+  if (!m) return;
+  const api = overlay(`<div class="dlg"><h3>Which photo is this?</h3>
+    <div class="pick">${STEPS.map((x, i) => `<button class="pk ${m.step === i + 1 ? 'sel' : ''}" data-pk="${i + 1}"><span class="num">${i + 1}</span><span>${x.s}</span></button>`).join('')}
+      <button class="pk ${!m.step ? 'sel' : ''}" data-pk="0"><span class="num none">–</span><span>Extra, not on the checklist</span></button></div>
+    <div class="acts"><button class="tbtn" data-close>Cancel</button></div></div>`);
+  api.el.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-pk]');
+    if (!b) return;
+    api.close();
+    await setStep(id, +b.dataset.pk);
+    toast(`Changed to ${stepName(+b.dataset.pk)}`);
+    if (onDone) onDone();
+  });
+}
+async function savePhoto(src, sx, sy, sw, sh, quiet) {
+  const step = activeStep();
+  pendingSteps.push(step);
+  if (S.activeStep) { S.activeStep = 0; save(); }
+  const meta = { id: uid(), unit: unitClean(), position: posClean(), ts: Date.now(), banner: S.banner, step: step || null };
+  try {
+    const r = await compose(src, sx, sy, sw, sh, meta);
+    meta.w = r.w; meta.h = r.h; meta.thumb = r.thumb;
+    await store.add(meta, { id: meta.id, data: r.full });
+    metaCache.set(meta.id, meta);
+    S.session.push(meta.id);
+    cacheBlob(meta.id, r.full);
+  } finally {
+    const k = pendingSteps.indexOf(step);
+    if (k >= 0) pendingSteps.splice(k, 1);
+  }
   addRecentUnit(meta.unit);
   save();
   renderSession(true);
   renderRecents();
+  if (!quiet) toast(`Saved as ${stepName(meta.step)}`, 'Change', () => openStepPicker(meta.id));
   return meta;
 }
 function checkReady() {
@@ -835,12 +986,13 @@ async function addFiles(files) {
     try {
       const r = await loadImg(f); u = r.u;
       const iw = r.im.naturalWidth, ih = r.im.naturalHeight;
-      await savePhoto(r.im, ...crop(iw, ih, aspectFor(iw, ih)));
+      await savePhoto(r.im, ...crop(iw, ih, aspectFor(iw, ih)), files.length > 1);
       ok++;
     } catch (e) { console.error(e); }
     finally { if (u) URL.revokeObjectURL(u); }
   }
-  toast(ok ? `Added ${plural(ok, 'photo')}` : "Couldn't add that photo");
+  if (!ok) toast("Couldn't add that photo");
+  else if (files.length > 1) toast(`Added ${plural(ok, 'photo')}. Tap a photo to change its checklist item.`);
 }
 
 /* ---------------- sending ---------------- */
@@ -863,9 +1015,19 @@ async function preloadSession() {
     try { const f = await store.getFull(id); if (f) cacheBlob(id, f.data); } catch (e) {}
   }));
 }
-function shareText(ms) {
-  const combos = [...new Set(ms.map((m) => `Unit #${m.unit}${m.position ? ' • ' + m.position : ''}`))];
-  return combos.join(', ') + (ms.length > 1 ? ` (${ms.length} photos)` : '');
+// Message text in the same order as the guideline example:
+// T165 - Left Rear Inside - CA59-3214 - 2259 hrs - Shoulder Separation - Scrap
+function detailsText(ms, det = {}) {
+  const byUnit = new Map();
+  ms.forEach((m) => {
+    if (!byUnit.has(m.unit)) byUnit.set(m.unit, []);
+    const a = byUnit.get(m.unit);
+    if (m.position && !a.includes(m.position)) a.push(m.position);
+  });
+  const head = [...byUnit.entries()].map(([u, ps]) => [u, ps.join(', ')].filter(Boolean).join(' - ')).join('; ');
+  const hrs = String(det.hours || '').trim().replace(/\s*h(ou)?rs?\.?$/i, '');
+  return [head, det.serial, hrs ? `${hrs} hrs` : '', det.damage, det.reason]
+    .map((x) => String(x || '').trim()).filter(Boolean).join(' - ');
 }
 function fileName(m, i, n) {
   const san = (x) => String(x || '').replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'x';
@@ -898,8 +1060,8 @@ function downloadFiles(files) {
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
   }, i * 350));
 }
-async function finishShare(files, metas, fromSession, api) {
-  const r = await doShare(files, shareText(metas));
+async function finishShare(files, text, fromSession, api) {
+  const r = await doShare(files, text);
   if (r === 'sent' || r === 'downloaded') {
     if (api) api.close();
     if (r === 'sent') { if (fromSession) showNextTire(); else toast('Sent'); }
@@ -938,7 +1100,7 @@ function iosSaveTip(files) {
   });
 }
 function runAction(mode, files, metas, fromSession, api) {
-  if (mode !== 'save') return finishShare(files, metas, fromSession, api);
+  if (mode !== 'save') return finishShare(files, detailsText(metas), fromSession, api);
   if (isIOS && !S.saveTipSeen) { if (api) api.close(); return iosSaveTip(files); }
   return finishSave(files, api);
 }
@@ -947,7 +1109,10 @@ function runAction(mode, files, metas, fromSession, api) {
 function actOnIds(ids, mode, fromSession) {
   ids = ids.filter((id) => metaCache.has(id));
   if (!ids.length) { toast('Take a photo first'); return; }
+  // checklist order (1 → 5, extras last), then the order they were taken
+  ids.sort((a, b) => { const A = metaCache.get(a), B = metaCache.get(b); return ((A.step || 99) - (B.step || 99)) || (A.ts - B.ts); });
   const metas = ids.map((id) => metaCache.get(id)), n = ids.length;
+  if (mode === 'send') { sendDialog(ids, metas, fromSession); return; }
   if (ids.every((id) => blobCache.has(id))) {
     const files = ids.map((id, k) => new File([blobCache.get(id)], fileName(metas[k], k, n), { type: 'image/jpeg', lastModified: metas[k].ts }));
     runAction(mode, files, metas, fromSession, null);
@@ -956,6 +1121,83 @@ function actOnIds(ids, mode, fromSession) {
   actionDialog(ids, metas, mode, fromSession);
 }
 const sendIds = (ids, fromSession) => actOnIds(ids, 'send', fromSession);
+// Reminder before sending: what the supervisor needs. Unit and position are already
+// on the photos; hours and reason can be filled in here and go into the text.
+async function sendDialog(ids, metas, fromSession) {
+  const n = ids.length, withText = S.includeText;
+  const det = fromSession
+    ? { hours: S.hours, reason: S.reason, serial: S.serial, damage: S.damage }
+    : { hours: '', reason: '', serial: '', damage: '' };
+  const fields = withText ? `
+    <label class="flbl" for="d-hours">Hours on tire</label>
+    <div class="hrs"><input class="field sm" id="d-hours" inputmode="decimal" autocomplete="off" placeholder="e.g. 2259" value="${esc(det.hours)}"><span>hrs</span></div>
+    <div class="flbl">Reason for removal</div>
+    <div class="rsn">${['Repair', 'Inspect', 'Scrap'].map((r) => `<button class="seg ${det.reason === r ? 'sel' : ''}" data-rsn="${r}">${r}</button>`).join('')}</div>
+    <div class="opt2">
+      <div><label class="flbl" for="d-serial">Serial # <i>(optional)</i></label><input class="field sm" id="d-serial" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" value="${esc(det.serial)}"></div>
+      <div><label class="flbl" for="d-damage">Damage <i>(optional)</i></label><input class="field sm" id="d-damage" autocomplete="off" autocapitalize="sentences" value="${esc(det.damage)}"></div>
+    </div>
+    <div class="msgprev" data-prev></div>` : '';
+  const cnt = stepCounts(ids);
+  const missing = (fromSession || n > 1) ? STEPS.map((x, i) => ({ k: i + 1, x })).filter((o) => !cnt[o.k]) : [];
+  const missHTML = missing.length ? `<div class="miss"><b>${missing.length === 1 ? 'Still missing a photo:' : 'Still missing photos:'}</b>
+    <ul>${missing.map((o) => `<li><span class="num">${o.k}</span>${o.x.s}</li>`).join('')}</ul>
+    <small>You can still send without ${missing.length === 1 ? 'it' : 'them'}.</small></div>` : '';
+  const api = overlay(`<div class="dlg">
+    <h3>Before you send</h3>
+    ${missHTML}
+    <div class="sthumbs">${metas.slice(0, 6).map((m) => `<img src="${thumbUrl(m)}" alt="">`).join('')}${n > 6 ? `<span class="more">+${n - 6}</span>` : ''}</div>
+    <p class="lead">Text pics to supervisor include:</p>
+    <ul class="req-list" data-req></ul>
+    ${fields}
+    <div class="acts"><button class="tbtn" data-close>Cancel</button><button class="btn btn-or" data-go-share disabled>${ic('send')}<span>Getting ready…</span></button></div>
+  </div>`);
+  const el = api.el;
+  const keep = () => { if (fromSession) { Object.assign(S, det); save(); } };
+  function refresh() {
+    const hrs = String(det.hours || '').trim();
+    const typeIt = withText ? 'Add it below, or type it in your message' : 'Type it in your message';
+    const items = [
+      { ok: true, t: 'Unit Number', s: 'Already on the photos' },
+      { ok: true, t: 'Tire Position', s: 'Already on the photos' },
+      { ok: !!hrs, t: 'Hours on Tire', s: hrs ? `${hrs.replace(/\s*h(ou)?rs?\.?$/i, '')} hrs` : typeIt },
+      { ok: !!det.reason, t: 'Reason for Removal', s: det.reason || `Repair, Inspect, or Scrap. ${typeIt}` }
+    ];
+    el.querySelector('[data-req]').innerHTML = items.map((x) =>
+      `<li class="${x.ok ? 'ok' : 'todo'}"><span class="mk">${x.ok ? ic('check') : '!'}</span><span><b>${x.t}</b><small>${esc(x.s)}</small></span></li>`).join('');
+    const pv = el.querySelector('[data-prev]');
+    if (pv) pv.innerHTML = `<small>Message sent with the photos</small>${esc(detailsText(metas, det))}`;
+  }
+  refresh();
+  if (withText) {
+    [['#d-hours', 'hours'], ['#d-serial', 'serial'], ['#d-damage', 'damage']].forEach(([sel, k]) => {
+      const inp = el.querySelector(sel);
+      inp.addEventListener('input', () => { det[k] = inp.value; keep(); refresh(); });
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') inp.blur(); });
+    });
+    el.querySelector('.rsn').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-rsn]');
+      if (!b) return;
+      det.reason = det.reason === b.dataset.rsn ? '' : b.dataset.rsn;
+      el.querySelectorAll('[data-rsn]').forEach((x) => x.classList.toggle('sel', x.dataset.rsn === det.reason));
+      keep(); refresh();
+    });
+  }
+  const btn = el.querySelector('[data-go-share]');
+  let files = null;
+  if (ids.every((id) => blobCache.has(id))) {
+    files = ids.map((id, k) => new File([blobCache.get(id)], fileName(metas[k], k, n), { type: 'image/jpeg', lastModified: metas[k].ts }));
+  } else {
+    try {
+      const fulls = await Promise.all(ids.map((id) => store.getFull(id)));
+      files = fulls.map((f, k) => (f ? new File([f.data], fileName(metas[k], k, n), { type: 'image/jpeg', lastModified: metas[k].ts }) : null)).filter(Boolean);
+    } catch (e) { files = null; }
+  }
+  if (!files || !files.length) { btn.querySelector('span').textContent = "Couldn't load photos"; return; }
+  btn.disabled = false;
+  btn.querySelector('span').textContent = 'Send';
+  btn.addEventListener('click', () => finishShare(files, detailsText(metas, det), fromSession, api));
+}
 async function actionDialog(ids, metas, mode, fromSession) {
   const n = ids.length, verb = mode === 'save' ? 'Save' : 'Send';
   const api = overlay(`<div class="dlg">
@@ -988,6 +1230,7 @@ function showNextTire() {
     if (b.dataset.nt === 'keep') return;
     S.session = [];
     S.position = '';
+    S.hours = ''; S.reason = ''; S.serial = ''; S.damage = ''; S.activeStep = 0;
     if (b.dataset.nt === 'new') S.unit = '';
     save();
     trimBlobCache();
@@ -1020,9 +1263,15 @@ function openViewer(ids, start) {
       stage.scrollTop = Math.max(0, (stage.scrollHeight - stage.clientHeight) / 2);
     });
   }
+  function drawMeta() {
+    const m = metaCache.get(ids[i]);
+    if (!m) return;
+    el.querySelector('.meta').innerHTML = `<b>Photo ${i + 1} of ${ids.length}</b><div>Captured: ${fmtFull(m.ts)}</div><div>Unit #${esc(m.unit)}${m.position ? ' • ' + esc(m.position) : ''}</div>
+      <button class="v-step" data-v="step">${ic('list', 'sm')}<span>Checklist: <b>${esc(stepName(m.step))}</b></span>${ic('pencil', 'sm')}</button>`;
+  }
   async function show() {
     const id = ids[i], m = metaCache.get(id), my = ++token;
-    el.querySelector('.meta').innerHTML = `<b>Photo ${i + 1} of ${ids.length}</b><div>Captured: ${fmtFull(m.ts)}</div><div>Unit #${esc(m.unit)}${m.position ? ' • ' + esc(m.position) : ''}</div>`;
+    drawMeta();
     setZoom(false);
     img.src = thumbUrl(m);
     el.querySelector('[data-v=prev]').hidden = i === 0;
@@ -1063,6 +1312,7 @@ function openViewer(ids, start) {
     else if (v === 'next') nav(1);
     else if (v === 'send') sendIds([ids[i]], false);
     else if (v === 'save') actOnIds([ids[i]], 'save', false);
+    else if (v === 'step') openStepPicker(ids[i], drawMeta);
     else if (v === 'del') {
       const id = ids[i];
       if (!(await confirmDlg('Delete this photo?', 'It will be removed from this app for good.'))) return;
@@ -1129,7 +1379,7 @@ function renderBannerPreview() {
 function stripHTML(emptyHtml, plain) {
   const ms = S.session.map((id) => metaCache.get(id)).filter(Boolean);
   if (!ms.length) return `<div class="empty${plain ? ' plain' : ''}">${emptyHtml}</div>`;
-  return `<div class="strip">${ms.map((m, i) => `<div class="th"><button class="th-img" data-sview="${i}" aria-label="View photo ${i + 1}"><img src="${thumbUrl(m)}" alt=""></button><span class="n">#${i + 1}</span><button class="x" data-sdel="${esc(m.id)}" aria-label="Delete photo ${i + 1}">${ic('close')}</button></div>`).join('')}</div>`;
+  return `<div class="strip">${ms.map((m, i) => `<div class="th"><button class="th-img" data-sview="${i}" aria-label="View photo ${i + 1}"><img src="${thumbUrl(m)}" alt=""></button><span class="n${m.step ? '' : ' none'}">${m.step ? m.step + ' ' + STEPS[m.step - 1].b : 'Extra'}</span><button class="x" data-sdel="${esc(m.id)}" aria-label="Delete photo ${i + 1}">${ic('close')}</button></div>`).join('')}</div>`;
 }
 function renderSession(scrollEnd) {
   const n = S.session.length;
@@ -1143,7 +1393,33 @@ function renderSession(scrollEnd) {
   $('#home-send').innerHTML = `${ic('send')}Send ${n === 1 ? 'photo' : n + ' photos'}`;
   $('#home-strip').innerHTML = stripHTML("No photos in this session yet.<br>Tap TAKE INSPECTION PHOTOS, or Add to pick from your photos.");
   $('#cam-strip').innerHTML = stripHTML('No photos captured in this session yet', true);
+  renderChecklist();
   if (scrollEnd) $$('.strip').forEach((s) => { s.scrollLeft = s.scrollWidth; });
+}
+const STEPS = [
+  { t: 'Tire Identification', d: 'Clear photo showing the tire brand', s: 'Tire ID: brand showing', b: 'Brand' },
+  { t: 'Overall Tire Condition', d: 'Full photo of the tire showing damage', s: 'Full tire showing damage', b: 'Full tire' },
+  { t: 'Damage / Injury', d: 'One photo of the damaged area close-up', s: 'Damage close-up', b: 'Close-up' },
+  { t: 'Inside Damage', d: 'Photo of the damage / bubble from inside the tire', s: 'Inside damage / bubble', b: 'Inside' },
+  { t: 'Serial Number & Brand', d: 'Clear photo showing serial number and brand markings', s: 'Serial # & brand markings', b: 'Serial #' }
+];
+function renderGuide() {
+  $('#guide-steps').innerHTML = STEPS.map((x, i) => `<li><span class="num">${i + 1}</span><span><b>${x.t}</b><span class="d">${x.d}</span></span></li>`).join('');
+  const g = $('#guide');
+  g.classList.toggle('closed', !!S.guideClosed);
+  g.querySelector('.gh').setAttribute('aria-expanded', S.guideClosed ? 'false' : 'true');
+}
+function renderChecklist() {
+  const c = stepCounts(), act = activeStep();
+  const covered = STEPS.filter((_, i) => c[i + 1]).length;
+  $('#cam-chk').innerHTML = `<div class="chk-h">Photos to take<span>${covered} of ${STEPS.length}</span></div>
+    <ol>${STEPS.map((x, i) => {
+      const k = i + 1, cnt = c[k];
+      const cls = [cnt ? 'done' : '', k === act ? 'next' : ''].join(' ').trim();
+      const tail = k === act ? '<span class="nx">NEXT</span>' : (cnt > 1 ? `<span class="ct">${cnt} photos</span>` : '');
+      return `<li class="${cls}"><button data-step="${k}"><span class="num">${cnt ? ic('check') : k}</span><span class="lb">${x.s}</span>${tail}</button></li>`;
+    }).join('')}</ol>
+    <p class="chk-f">${act ? 'The next photo goes to NEXT. Tap another item to switch.' : 'All 5 done. Tap an item to add another photo to it.'}</p>`;
 }
 function renderAll() {
   renderTip(); renderInputs(); renderRecents(); renderPositions(); renderSession(); renderBannerPreview();
@@ -1205,7 +1481,7 @@ function renderSettings() {
     <h3>Unit number keyboard</h3>
     <div class="segs"><button class="seg ${!S.unitPad ? 'sel' : ''}" data-set="kb-text">Full keyboard</button><button class="seg ${S.unitPad ? 'sel' : ''}" data-set="kb-num">Number pad</button></div>
     <h3>Sending</h3>
-    <button class="toggle-row" data-set="text"><span class="tt"><b>Add unit &amp; position as text</b><small>Sends “Unit #452 • P4” along with the photos.</small></span><span class="sw-t ${S.includeText ? 'on' : ''}"></span></button>
+    <button class="toggle-row" data-set="text"><span class="tt"><b>Add details as text</b><small>Sends text like “T165 - P4 - 2259 hrs - Scrap” along with the photos, and lets you fill in hours and reason before sending.</small></span><span class="sw-t ${S.includeText ? 'on' : ''}"></span></button>
     <h3>Stored photos</h3>
     <p class="note">Photos stay inside this app for 7 days, then delete themselves. Photos you take here never go into your Photos app.</p>
     <button class="btn btn-danger" data-set="wipe">${ic('trash')}Delete all photos now</button>
@@ -1301,7 +1577,7 @@ document.addEventListener('click', async (e) => {
   if (d.hshare) { const G = HG[+d.hshare]; if (G) sendIds(G.ids.slice(), false); return; }
   if (d.hopen) {
     const G = HG[+d.hopen]; if (!G) return;
-    S.unit = G.unit; S.position = G.position || ''; S.session = G.ids.slice();
+    S.unit = G.unit; S.position = G.position || ''; S.session = G.ids.slice(); S.activeStep = 0;
     addRecentUnit(G.unit); save(); preloadSession();
     go('camera');
     toast(`Opened ${plural(G.ids.length, 'photo')} for Unit #${G.unit}`);
@@ -1324,7 +1600,13 @@ document.addEventListener('click', async (e) => {
     case 'flip': flipCamera(); break;
     case 'cam-retry': startCamera(); break;
     case 'hide-tip': S.tipHidden = true; save(); renderTip(); break;
+    case 'guide-toggle': S.guideClosed = !S.guideClosed; save(); renderGuide(); break;
     case 'clear-all': wipeAll(); break;
+  }
+  if (d.step) {
+    const k = +d.step;
+    S.activeStep = S.activeStep === k ? 0 : k;
+    save(); renderChecklist();
   }
 });
 async function deleteSessionPhoto(id) {
@@ -1356,6 +1638,7 @@ document.addEventListener('visibilitychange', () => {
 /* ---------------- start ---------------- */
 async function init() {
   paintIcons();
+  renderGuide();
   try { await DB.open(); store = DB; } catch (e) { store = Mem; }
   await purge();
   const metas = await Promise.all(S.session.map((id) => store.getMeta(id).catch(() => null)));
