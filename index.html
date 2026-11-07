@@ -290,6 +290,19 @@ input{font:inherit;color:inherit}
 .pick{display:flex;flex-direction:column;gap:8px}
 .pk{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:#1f1d22;border:2px solid transparent;text-align:left;font-size:15.5px;min-height:50px}
 .pk.sel{border-color:var(--or)}
+.pk .pl{flex:1;min-width:0}
+.pk .pc{color:#7fd17f;font-size:13px;font-weight:800;white-space:nowrap}
+.pk .okmk{width:28px;height:28px;border-radius:50%;background:#2e7d32;color:#fff;display:grid;place-items:center;flex:none}
+.pk .okmk .ic{width:17px;height:17px}
+.pk.sel{background:rgba(255,90,0,.22)}
+.acts.ask-acts{justify-content:space-between}
+.ask-acts .btn{min-width:120px}
+.ask-acts .btn:disabled{opacity:.4}
+.pk .nx{color:var(--or-t);font-size:12px;font-weight:800;letter-spacing:.4px}
+.pk:active{filter:brightness(1.25)}
+.ask h3{margin-bottom:12px}
+.ask-img{display:block;width:100%;max-height:30vh;object-fit:contain;background:#111;border-radius:12px;margin:0 0 14px}
+.tbtn.del{color:var(--red-soft);display:inline-flex;align-items:center;gap:6px;font-size:15px}
 .num.none{background:#555}
 .miss{background:rgba(255,90,0,.16);border:1.5px solid rgba(255,90,0,.55);border-radius:14px;padding:10px 12px;margin:0 0 14px}
 .miss b{display:block;margin-bottom:6px}
@@ -835,8 +848,9 @@ async function setStep(id, k) {
   try { await store.putMeta(m); } catch (e) {}
   renderSession();
 }
-// Popup with the 5 photo types. `must` = right after taking a photo: no Cancel,
-// tapping outside does nothing, only a choice (or Retake) closes it.
+// Popup with the 5 photo types: tap one, then Done. Items already taken this session
+// get a green check (and can be picked again). `must` = right after taking a photo:
+// no Cancel and tapping outside does nothing; only Done (or Retake) closes it.
 function stepPopup(id, must, removeLabel) {
   return new Promise((resolve) => {
     const m = metaCache.get(id);
@@ -844,23 +858,39 @@ function stepPopup(id, must, removeLabel) {
     const c = stepCounts();
     if (m.step) c[m.step]--;
     const sug = firstMissing(c);
+    let pick = m.step || 0;
     const api = overlay(`<div class="dlg ask"><h3>Which photo is this?</h3>
       <img class="ask-img" src="${thumbUrl(m)}" alt="The photo you just took">
       <div class="pick">${STEPS.map((x, i) => {
         const k = i + 1;
-        const tag = c[k] ? `<span class="pc">${c[k]} taken</span>` : (k === sug ? '<span class="nx">NEXT</span>' : '');
-        return `<button class="pk ${m.step === k ? 'sel' : ''} ${k === sug ? 'sug' : ''}" data-pk="${k}"><span class="num">${k}</span><span class="pl">${x.s}</span>${tag}</button>`;
+        const tag = c[k]
+          ? `<span class="okmk" title="Already taken">${ic('check')}</span>${c[k] > 1 ? `<span class="pc">×${c[k]}</span>` : ''}`
+          : (k === sug ? '<span class="nx">NEXT</span>' : '');
+        return `<button class="pk ${k === sug ? 'sug' : ''}" data-pk="${k}" aria-pressed="false"><span class="num">${k}</span><span class="pl">${x.s}</span>${tag}</button>`;
       }).join('')}</div>
-      <div class="acts">${must
-        ? `<button class="tbtn del" data-remove>${ic('trash', 'sm')}${removeLabel || 'Retake (delete this photo)'}</button>`
-        : '<button class="tbtn" data-close>Cancel</button>'}</div></div>`,
+      <div class="acts ask-acts">${must
+        ? `<button class="tbtn del" data-remove>${ic('trash', 'sm')}${removeLabel || 'Retake'}</button>`
+        : '<button class="tbtn" data-close>Cancel</button>'}
+        <button class="btn btn-or" data-done disabled>${ic('check', 'sm')}Done</button></div></div>`,
       () => resolve(m.step || 0), { sticky: must });
+    const done = api.el.querySelector('[data-done]');
+    const mark = () => {
+      api.el.querySelectorAll('[data-pk]').forEach((b) => {
+        const on = +b.dataset.pk === pick;
+        b.classList.toggle('sel', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      done.disabled = !pick;
+    };
+    mark();
     api.el.addEventListener('click', async (e) => {
       const b = e.target.closest('[data-pk]');
-      if (b) {
+      if (b) { pick = +b.dataset.pk; mark(); return; }
+      if (e.target.closest('[data-done]')) {
+        if (!pick) return;
         api.close();
-        await setStep(id, +b.dataset.pk);
-        resolve(+b.dataset.pk);
+        await setStep(id, pick);
+        resolve(pick);
         return;
       }
       if (e.target.closest('[data-remove]')) {
