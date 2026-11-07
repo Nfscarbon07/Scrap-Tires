@@ -128,6 +128,8 @@ input{font:inherit;color:inherit}
 .cam-title span{color:var(--or-t);font-size:14px;font-weight:700}
 .cam-top .dim{opacity:.45}
 .cam-body{max-width:640px;margin:0 auto}
+/* the camera view stays put under the top bar while the controls scroll underneath it */
+.cam-left{position:sticky;top:var(--camtop,62px);z-index:4;background:#000}
 .preview{--ar:1.3333;position:relative;width:min(100%, calc(44vh * var(--ar)));aspect-ratio:var(--ar);margin:0 auto;background:#111;overflow:hidden}
 @supports (height:1svh){.preview{width:min(100%, calc(44svh * var(--ar)))}}
 .preview video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -1003,6 +1005,8 @@ function updateAspect() {
   const p = $('#preview');
   p.style.setProperty('--ar', aspect());
   $('#ar-badge').textContent = arLabel();
+  const top = $('.cam-top').offsetHeight;
+  if (top) document.documentElement.style.setProperty('--camtop', top + 'px');
 }
 let shooting = false;
 async function shoot() {
