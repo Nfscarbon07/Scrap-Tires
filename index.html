@@ -183,11 +183,18 @@ input{font:inherit;color:inherit}
   .shut-row{margin:12px 0 6px}
   .shutter{width:82px;height:82px;border-width:5px;padding:5px}
 }
-@media (orientation:landscape) and (max-height:540px){
+/* tablets (iPad mini and up): wider column */
+@media (min-width:700px){
+  .screen{max-width:760px}
+  .cam-body{max-width:760px}
+  .th{width:120px;height:120px}
+}
+/* sideways phones and sideways tablets: camera on the left, controls on the right */
+@media (orientation:landscape) and (max-height:540px), (orientation:landscape) and (min-width:900px){
   .cam-body{display:flex;align-items:flex-start;max-width:none}
   .cam-left{flex:none;padding-left:var(--sl)}
-  .preview{width:auto;height:calc(100vh - 66px - var(--st));max-width:none;margin:0}
-  .cam-ctl{flex:1;min-width:0;height:calc(100vh - 66px - var(--st));overflow-y:auto;padding-top:10px}
+  .preview{width:min(62vw, calc((100vh - 66px - var(--st)) * var(--ar)));max-width:none;margin:0}
+  .cam-ctl{flex:1;min-width:0;max-height:calc(100vh - 66px - var(--st));overflow-y:auto;padding-top:10px}
 }
 
 /* history + settings */
